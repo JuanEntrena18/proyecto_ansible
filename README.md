@@ -12,7 +12,7 @@
 | :--- | :--- | :--- |
 | **Juan Fco. Entrena Garrido** | xxxxx | [@juanentrena18] |
 | **Diego Toribio Perea** | xxxxx | [@DIEGO1ASIRC] |
-| **[Nombre Colaborador 2]** |xxxxx | [@usuario-colab-2] |
+| **Daniel Palacios Melguizo** |xxxxx | [@dpalmel1312] |
 | **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
 
 ## 📖 Tabla de Contenidos
