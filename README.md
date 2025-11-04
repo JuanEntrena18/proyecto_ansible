@@ -10,9 +10,10 @@ configuración y gestión de todo el sistema a partir de un entorno gráfico.
 
 | Nombre | Rol / Especialidad | GitHub |
 | :--- | :--- | :--- |
-| **Juan Fco. Entrena Garrido** | xxxxx | [@juanentrena18] |
+| **Juan Fco. Entrena Garrido** | xxxxx | [@JuanEntrena18] |
 | **Diego Toribio Perea** | xxxxx | [@DIEGO1ASIRC] |
 | **Daniel Palacios Melguizo** |xxxxx | [@dpalmel1312] |
+| **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
 | **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
 
 ## 📖 Tabla de Contenidos
@@ -49,12 +50,6 @@ Aquí se detallan las partes o módulos clave que componen el proyecto. Esto ayu
     * Descripción: Documentación técnica y guías de usuario.
     * Responsable(s): [Nombre o @usuario-github]
 
-*(Edita, añade o elimina estas secciones según la estructura real de tu proyecto.)*
-
-
-
-*(Asegúrate de reemplazar los `@usuario` con los nombres de usuario reales de GitHub para que los enlaces funcionen.)*
-
 ---
 
 ## 🏁 Primeros Pasos (Cómo Empezar)
@@ -63,32 +58,13 @@ Instrucciones claras para que cualquier miembro del equipo pueda poner en marcha
 
 ### Prerrequisitos
 
-* [Software necesario 1 (ej. Node.js v18+)]
-* [Software necesario 2 (ej. Python 3.10)]
-* [Software necesario 3 (ej. Docker)]
 
 ### Instalación
 
 1.  Clona este repositorio:
     ```bash
-    git clone [https://github.com/JuanEntrena18/proyecto_ansible.git](https://github.com/JuanEntrena18/proyecto_ansible.git)
+    git clone https://github.com/JuanEntrena18/proyecto_ansible
     cd proyecto_ansible
-    ```
-
-2.  Instala las dependencias (ejemplo para un proyecto Node.js):
-    ```bash
-    npm install
-    ```
-
-3.  Crea un archivo de variables de entorno (ejemplo):
-    ```bash
-    cp .env.example .env
-    ```
-    *(No olvides rellenar tu archivo `.env` con las claves necesarias.)*
-
-4.  Ejecuta el proyecto:
-    ```bash
-    npm run dev
     ```
 
 ## 🤝 Cómo Contribuir
