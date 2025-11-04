@@ -1,8 +1,8 @@
 # 🚀 [Proyecto Ansible]
 
-> Una breve descripción (una o dos frases) sobre el propósito principal de este proyecto.
+-Ansible (sistema de control gráfico). Construcción de una herramienta que permita la
+configuración y gestión de todo el sistema a partir de un entorno gráfico.
 
-¡Bienvenido al repositorio oficial! Este archivo sirve como la guía central para entender, configurar y contribuir al proyecto.
 
 ## 👥 Equipo y Colaboradores
 
