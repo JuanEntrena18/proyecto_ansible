@@ -14,7 +14,7 @@ configuración y gestión de todo el sistema a partir de un entorno gráfico.
 | **Diego Toribio Perea** | xxxxx | [@DIEGO1ASIRC] |
 | **Daniel Palacios Melguizo** |xxxxx | [@dpalmel1312] |
 | **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
-| **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
+| **Félix David Romero López** | xxxxx | [@felixdavid28] |
 
 ## 📖 Tabla de Contenidos
 
