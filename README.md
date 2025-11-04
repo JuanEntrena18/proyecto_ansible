@@ -13,7 +13,7 @@ configuración y gestión de todo el sistema a partir de un entorno gráfico.
 | **Juan Fco. Entrena Garrido** | xxxxx | [@JuanEntrena18] |
 | **Diego Toribio Perea** | xxxxx | [@DIEGO1ASIRC] |
 | **Daniel Palacios Melguizo** |xxxxx | [@dpalmel1312] |
-| **[Nombre Colaborador 3]** | xxxxx | [@usuario-colab-3] |
+| **Marina Jiménez Egea** | xxxxx | [@Marjieg] |
 | **Félix David Romero López** | xxxxx | [@felixdavid28] |
 
 ## 📖 Tabla de Contenidos
