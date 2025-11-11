@@ -1,8 +1,9 @@
-# 🚀 [Proyecto Ansible]
+# 🚀 [Proyecto Visual Ansible]
 
--Ansible (sistema de control gráfico). Construcción de una herramienta que permita la
-configuración y gestión de todo el sistema a partir de un entorno gráfico.
+-Crear una capa visual que facilite la utilización de ANSIBLE en las aulas. 
+El usuario podrá descargar la imagen Docker, lanzar el contenedor de VISUAL ANSIBLE y automatizar la instalación de programas en los ordenadores del aula, sea Windows o Linux.
 
+---
 
 ## 👥 Equipo y Colaboradores
 
@@ -56,7 +57,62 @@ Aquí se detallan las partes o módulos clave que componen el proyecto. Esto ayu
 
 Instrucciones claras para que cualquier miembro del equipo pueda poner en marcha el proyecto en su máquina local.
 
-### Prerrequisitos
+### Prerrequisitos para replicar el servidor UBUNTU del proyecto
+
+Paso 1: Seguridad Básica
+Esto es lo primero que debes hacer, antes de instalar nada más.
+Crear un Usuario no-root: Nunca uses root para las operaciones diarias.
+```bash
+adduser visualansible (pass: visualansible)
+usermod -aG sudo visualansible
+Configurar SSH con Claves: Desactiva el login con contraseña.
+Copia tu clave pública local (~/.ssh/id_rsa.pub) al archivo ~/.ssh/authorized_keys del nuevo usuario en el servidor.
+Edita /etc/ssh/sshd_config y cambia PasswordAuthentication no.
+Reinicia SSH: sudo systemctl restart sshd.
+```
+Activar el Firewall (UFW): Cierra todos los puertos excepto los necesarios.
+```bash
+sudo ufw allow OpenSSH (o sudo ufw allow 22/tcp)
+sudo ufw allow http (Puerto 80)
+sudo ufw allow https (Puerto 443)
+sudo ufw enable
+```
+Paso 2: Instalar el "Motor" (Ansible)
+Ansible se ejecuta sobre Python, que Ubuntu 22.04 ya incluye. La mejor forma de instalar Ansible es usando su PPA oficial para tener la última versión estable.
+```bash
+sudo apt update
+sudo apt install software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install ansible-core (o ansible para el paquete completo)
+```
+Paso 3: Instalar la "Pila de Backend" (API y BBDD)
+Aquí debes tomar una decisión tecnológica para tu API: ¿Node.js o Python?
+Opción (Python - con Flask o FastAPI):
+```bash
+sudo apt install python3-pip python3-venv
+mkdir -p /opt/ansible-visual/api
+cd /opt/ansible-visual/api
+python3 -m venv venv
+source venv/bin/activate
+pip install gunicorn fastapi uvicorn
+```
+Si da error por permisos al haber creado la carpeta como usuario privilegiado
+```bash
+deactivate
+sudo chown -R docker:docker /opt/ansible-visual
+cd /opt/ansible-visual/api
+source venv/bin/activate
+pip install gunicorn fastapi uvicorn
+```
+Si da error por permisos
+Para la Base de Datos (recomiendo PostgreSQL):
+sudo apt install postgresql postgresql-contrib
+sudo -u postgres psql (Entra a la consola de Postgres).
+Dentro de psql:
+CREATE DATABASE ansible_visual;
+CREATE USER visual_admin WITH ENCRYPTED PASSWORD '[tu_clave_segura]';
+GRANT ALL PRIVILEGES ON DATABASE ansible_visual TO visual_admin;
+\q (Para salir).
 
 
 ### Instalación
