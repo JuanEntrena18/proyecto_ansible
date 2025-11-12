@@ -119,7 +119,7 @@ GRANT ALL PRIVILEGES ON DATABASE ansible_visual TO visual_admin;
 
 1.  Clona este repositorio:
     ```bash
-    git clone https://github.com/JuanEntrena18/proyecto_ansible
+    git clone https://github.com/JuanEntrena18/proyecto_ansible.git
     cd proyecto_ansible
     ```
 
