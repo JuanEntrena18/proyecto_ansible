@@ -57,7 +57,7 @@ Frontend: /var/www/ansible-visual/html (Archivos estáticos servidos por Nginx).
 ## 2. Configuración Nginx (Reverse Proxy)
 Nginx redirige el tráfico de /api/ internamente al servicio de Python.
 
-´´´
+```
 server {
     listen 80;
     root /var/www/ansible-visual/html;
@@ -72,6 +72,6 @@ server {
         proxy_set_header Host $host;
     }
 }
-´´´
+```
 
 ---
