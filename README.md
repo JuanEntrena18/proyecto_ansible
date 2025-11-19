@@ -32,6 +32,19 @@ Frontend (Base): HTML/JS (Sirviendo estáticos vía Nginx).
 ### ⚙️ Arquitectura del Sistema
 El sistema utiliza Nginx como punto de entrada único (Reverse Proxy) para gestionar tanto la entrega de la aplicación visual como las peticiones a la API, evitando problemas de CORS y simplificando la exposición de puertos.
 
-https://mermaidchart.com/play?utm_source=mermaid_live_editor&utm_medium=share#pako:eNptUdtu4jAQ_RVrnlotpbm4weRhJXZ7UaW2QlTsQ5N9MMmUWAUbOTaCIj5pv2J_bCdJaWm1I9k6xz7njEfeQWFKhBTmVq4qdjfJNaOa1mhPHuQa57I0lqiXVplTdnbGxh6tM0wERL6zh7nSm6zd2SPaNdrfXUK3137WBXd3LJvOvHaeRVE_4G_KproASj9nJxP598_raZv-6KRTRTayRaXWpmbX1miHuvyvU67UeesaW7PZZhOkhjV27MjQ8k-DBN0oN16rwlidHQD7xqbrFh3ZP9D7bD9k8UKPYtmVdiQ27JeyzssFG29dZY7NTb2nNz2vZe1G49uM1gF_kb-dtuqRrtVsgdm9oT4HdqSnR3SEAPToS1UJqbMee7BEu5QNhV0jycFVuMQcUoIlPku_cDnkek-2ldRPxiwPTmv8vIL0WS5qYn5VSoeXStLoHxLqh_anoa-FNAx4mwHpDjaQxkk_4XzA4zCJw-EgSHqwJVEc9qOBSER0EcRJwodi34PXtmvQH3IeiTAR_CIUIorE_h-Qfsxg
-
+´´´
+graph LR
+    User(Navegador Usuario) -- Puerto 80 --> Nginx[Nginx Server]
+    
+    subgraph Server [Ubuntu 22.04]
+        Nginx -- / (Raíz) --> Static[Archivos Frontend]
+        Nginx -- /api/ --> Proxy[Reverse Proxy]
+        Proxy -- Puerto 8000 --> Gunicorn[Gunicorn + Uvicorn]
+        
+        subgraph Backend [Entorno Virtual Python]
+            Gunicorn --> FastAPI[API FastAPI]
+            FastAPI --> Ansible[Motor Ansible]
+        end
+    end
+´´´
 ---
