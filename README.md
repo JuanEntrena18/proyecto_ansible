@@ -32,7 +32,7 @@ Frontend (Base): HTML/JS (Sirviendo estáticos vía Nginx).
 ### ⚙️ Arquitectura del Sistema
 El sistema utiliza Nginx como punto de entrada único (Reverse Proxy) para gestionar tanto la entrega de la aplicación visual como las peticiones a la API, evitando problemas de CORS y simplificando la exposición de puertos.
 
-´´´
+```flow
 graph LR
     User(Navegador Usuario) -- Puerto 80 --> Nginx[Nginx Server]
     
@@ -46,5 +46,5 @@ graph LR
             FastAPI --> Ansible[Motor Ansible]
         end
     end
-´´´
+```
 ---
