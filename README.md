@@ -32,5 +32,18 @@ Frontend (Base): HTML/JS (Sirviendo estáticos vía Nginx).
 ### ⚙️ Arquitectura del Sistema
 El sistema utiliza Nginx como punto de entrada único (Reverse Proxy) para gestionar tanto la entrega de la aplicación visual como las peticiones a la API, evitando problemas de CORS y simplificando la exposición de puertos.
 
+graph LR
+    User(Navegador Usuario) -- Puerto 80 --> Nginx[Nginx Server]
+    
+    subgraph Server [Ubuntu 22.04]
+        Nginx -- / (Raíz) --> Static[Archivos Frontend]
+        Nginx -- /api/ --> Proxy[Reverse Proxy]
+        Proxy -- Puerto 8000 --> Gunicorn[Gunicorn + Uvicorn]
+        
+        subgraph Backend [Entorno Virtual Python]
+            Gunicorn --> FastAPI[API FastAPI]
+            FastAPI --> Ansible[Motor Ansible]
+        end
+    end
 
 ---
