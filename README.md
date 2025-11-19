@@ -73,5 +73,32 @@ server {
     }
 }
 ```
+##  3. Servicio Systemd (Backend Daemon)
+La API se ejecuta como un servicio en segundo plano (ansible-api.service), garantizando reinicios automáticos y persistencia.
 
+Ruta: /etc/systemd/system/ansible-api.service
+
+Comando de ejecución: Gunicorn con workers Uvicorn.
+
+### ✅ Estado Actual (Checklist)
+[x] Servidor Ubuntu securizado (Usuario no-root, SSH Keys, UFW Firewall).
+
+[x] Instalación de Ansible Core.
+
+[x] Configuración de entorno virtual Python (venv).
+
+[x] API "Hola Mundo" desplegada con FastAPI.
+
+[x] Configuración de Nginx como Proxy Inverso.
+
+[x] Creación del servicio systemd para la API.
+
+[x] Prueba de integración: Frontend conecta con Backend vía HTTP Fetch.
+
+### 🔜 Próximos Pasos (Fase 2)
+Integración de React Flow para el editor visual.
+
+Definición de nodos JSON para módulos de Ansible.
+
+Lógica de traducción (Gráfico -> Playbook YAML).
 ---
