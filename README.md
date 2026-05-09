@@ -13,92 +13,91 @@ Objetivo: Crear una interfaz visual basada en nodos (estilo Blueprints de Unreal
 | **Marina Jiménez Egea** | xxxxx | [@Marjieg] |
 | **Félix David Romero López** | xxxxx | [@felixdavid28] |
 
-## 🚀 Fase 1: Infraestructura y Arquitectura Base
-En esta fase se ha establecido los cimientos del servidor, la seguridad y la tubería de comunicación completa entre el Frontend y el Backend. Se ha configurado un entorno de producción "Bare Metal" en Ubuntu 22.04 antes de la futura contenerización con Docker.
+# Ansible Visual Project
 
-### 🏗️ Stack Tecnológico (Estado Actual)
-OS: Ubuntu Server 22.04 LTS.
+Objetivo: Crear una interfaz visual basada en nodos para generar y ejecutar playbooks de Ansible, simplificando la infraestructura como código (IaC).
 
-Web Server / Proxy: Nginx.
+## 1. Infraestructura y Arquitectura Base
 
-Backend API: Python (FastAPI + Uvicorn + Gunicorn).
+### Stack Tecnológico
+- **OS**: Ubuntu Server 24.04 LTS
+- **Web Server / Proxy**: Nginx
+- **Backend API**: Python (FastAPI + Uvicorn/Gunicorn)
+- **Procesos y Servicios**: Systemd
+- **Motor IaC**: Ansible Core
+- **Escaneo de Red**: Nmap
+- **Frontend**: HTML/JS (Archivos estáticos servidos por Nginx)
 
-Process Manager: Systemd.
+### Arquitectura del Sistema
 
-IaC Engine: Ansible Core.
-
-Frontend (Base): HTML/JS (Sirviendo estáticos vía Nginx).
-
-### ⚙️ Arquitectura del Sistema
-El sistema utiliza Nginx como punto de entrada único (Reverse Proxy) para gestionar tanto la entrega de la aplicación visual como las peticiones a la API, evitando problemas de CORS y simplificando la exposición de puertos.
+La arquitectura está diseñada para tener Nginx como punto de entrada único (Reverse Proxy). Esto nos permite servir la aplicación web estática y redirigir el tráfico de la API al backend en Python, evitando problemas de CORS y mejorando la seguridad general.
 
 ```mermaid
-graph LR
-    User(Navegador Usuario) -- Puerto 80 --> Nginx[Nginx Server]
+graph TD
+    User(Usuario - Navegador web) -- HTTP:80 --> Nginx[Nginx Reverse Proxy]
     
-    subgraph Server [Ubuntu 22.04]
-        Nginx -- / (Raíz) --> Static[Archivos Frontend]
-        Nginx -- /api/ --> Proxy[Reverse Proxy]
-        Proxy -- Puerto 8000 --> Gunicorn[Gunicorn + Uvicorn]
+    subgraph Ubuntu 24.04 LTS Server
+        Nginx -- / --> Frontend[Frontend Archivos Estáticos\n/var/www/ansible-visual/html]
+        Nginx -- /api/ --> BackendAPI[Backend FastAPI\n127.0.0.1:8000]
         
-        subgraph Backend [Entorno Virtual Python]
-            Gunicorn --> FastAPI[API FastAPI]
-            FastAPI --> Ansible[Motor Ansible]
+        subgraph Backend Systemd Service
+            BackendAPI --> Nmap[Escaner Nmap]
+            BackendAPI --> Ansible[Ansible Core]
+            Ansible -- WinRM --> Windows(Windows Hosts)
+            Ansible -- SSH --> Linux(Linux Hosts)
         end
     end
 ```
 
-### 🔧 Detalles de Configuración
-1. Estructura de Directorios
-Backend: /opt/ansible-visual/api (Propiedad del usuario, entorno virtual venv aislado).
+### Detalles de Configuración
+Las rutas principales dentro del servidor donde se despliega el proyecto son:
+- **Backend API**: `/opt/ansible-visual/api` (entorno virtual de Python `venv` aislado)
+- **Frontend**: `/var/www/ansible-visual/html`
+- **Motor Ansible**: `/opt/ansible-visual/ansible` (Playbooks, inventarios y logs)
+- **Credenciales y Configuración**: `/opt/ansible-visual/credentials.json`
 
-Frontend: /var/www/ansible-visual/html (Archivos estáticos servidos por Nginx).
+## 2. Configuración del proxy inverso Nginx
 
-## 2. Configuración Nginx (Reverse Proxy)
-Nginx redirige el tráfico de /api/ internamente al servicio de Python.
+Nginx actúa como el servidor web y proxy inverso principal. Su labor fundamental es recibir peticiones por el puerto 80 y decidir su destino:
+- Las peticiones a la ruta raíz (`/`) sirven la interfaz frontend.
+- Las peticiones a `/api/` se reenvían al servicio interno de FastAPI en el puerto `8000`.
 
-```
-server {
-    listen 80;
-    root /var/www/ansible-visual/html;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8000/;
-        proxy_set_header Host $host;
-    }
+**Configuración clave destacada:**
+Para que la salida de las ejecuciones de Ansible se muestre en tiempo real en la interfaz (mediante `StreamingResponse`), Nginx requiere desactivar el buffering del proxy.
+```nginx
+location /api/ {
+    proxy_pass http://127.0.0.1:8000/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    
+    # Fundamental: desactiva el buffering para poder transmitir
+    # el log de Ansible en streaming al navegador en tiempo real.
+    proxy_buffering off; 
 }
 ```
-##  3. Servicio Systemd (Backend Daemon)
-La API se ejecuta como un servicio en segundo plano (ansible-api.service), garantizando reinicios automáticos y persistencia.
 
-Ruta: /etc/systemd/system/ansible-api.service
+## 3. Servicio Systemd (Backend Daemon)
 
-Comando de ejecución: Gunicorn con workers Uvicorn.
+El backend en FastAPI se ejecuta en segundo plano como un daemon gestionado por Systemd. Esto asegura que la API se inicie automáticamente con el sistema operativo y se reinicie en caso de fallo, aportando robustez.
 
-### ✅ Estado Actual (Checklist)
-[x] Servidor Ubuntu securizado (Usuario no-root, SSH Keys, UFW Firewall).
+- **Ruta del servicio**: `/etc/systemd/system/ansible-api.service`
+- **Gestión**: `systemctl start ansible-api` / `systemctl enable ansible-api`
+- El servicio encapsula el entorno virtual y lanza los workers (Uvicorn/Gunicorn) aislando las variables de entorno necesarias como `ANSIBLE_CONFIG` o `ANSIBLE_ROLES_PATH`.
 
-[x] Instalación de Ansible Core.
+## 4. Estado Actual
 
-[x] Configuración de entorno virtual Python (venv).
+- [x] Servidor base Ubuntu 24.04 configurado y securizado.
+- [x] Motor de Ansible y dependencias instaladas.
+- [x] API backend (FastAPI) plenamente funcional.
+- [x] Escaneo dinámico de subredes integrado a través de `nmap` para la detección inteligente de hosts (Windows/Linux).
+- [x] Ejecución y streaming de Playbooks desde el navegador en tiempo real con inventarios generados al vuelo.
+- [x] Proxy Nginx configurado y activo.
+- [x] Demonización del servicio API configurada mediante Systemd.
+- [x] Compatibilidad con nodos Windows mediante protocolo WinRM y nodos Linux por SSH.
 
-[x] API "Hola Mundo" desplegada con FastAPI.
+## 5. Futuros Pasos
 
-[x] Configuración de Nginx como Proxy Inverso.
-
-[x] Creación del servicio systemd para la API.
-
-[x] Prueba de integración: Frontend conecta con Backend vía HTTP Fetch.
-
-### 🔜 Próximos Pasos (Fase 2)
-Integración de React Flow para el editor visual.
-
-Definición de nodos JSON para módulos de Ansible.
-
-Lógica de traducción (Gráfico -> Playbook YAML).
----
+- **Desarrollo Visual (Drawflow/React Flow)**: Implementación integral de la interfaz basada en nodos para crear workflows arrastrando componentes visuales.
+- **Mapeo de Módulos**: Creación del diccionario/traductor que convierte las configuraciones del diagrama de nodos visual a formato estándar YAML de Ansible.
+- **Orquestación Asíncrona Avanzada**: Posibilidad de programar ejecuciones concurrentes o diferidas con un motor de colas.
+- **Contenerización Total**: Transición del despliegue "Bare Metal" a un entorno Dockerizado robusto (uso del `docker-compose.yml` actualmente en desarrollo).
