@@ -1,5 +1,6 @@
-## 🟦 Ansible Visual Project
-Objetivo: Crear una interfaz visual basada en nodos (estilo Blueprints de Unreal Engine) para generar y ejecutar playbooks de Ansible, simplificando la infraestructura como código (IaC).
+# Visual /\nsible Project
+
+Objetivo: Crear una interfaz visual basada en nodos para generar y ejecutar playbooks de Ansible, simplificando la infraestructura como código (IaC).
 
 ## 👥 Equipo y Colaboradores
 
@@ -7,15 +8,11 @@ Objetivo: Crear una interfaz visual basada en nodos (estilo Blueprints de Unreal
 
 | Nombre | Rol / Especialidad | GitHub |
 | :--- | :--- | :--- |
-| **Juan Fco. Entrena Garrido** | xxxxx | [@JuanEntrena18] |
-| **Diego Toribio Perea** | xxxxx | [@DIEGO1ASIRC] |
-| **Daniel Palacios Melguizo** |xxxxx | [@dpalmel1312] |
-| **Marina Jiménez Egea** | xxxxx | [@Marjieg] |
-| **Félix David Romero López** | xxxxx | [@felixdavid28] |
-
-# Ansible Visual Project
-
-Objetivo: Crear una interfaz visual basada en nodos para generar y ejecutar playbooks de Ansible, simplificando la infraestructura como código (IaC).
+| **Juan Fco. Entrena Garrido** | [@JuanEntrena18] |
+| **Diego Toribio Perea** | [@DIEGO1ASIRC] |
+| **Daniel Palacios Melguizo** | [@dpalmel1312] |
+| **Marina Jiménez Egea** | [@Marjieg] |
+| **Félix David Romero López** | [@felixdavid28] |
 
 ## 1. Infraestructura y Arquitectura Base
 
