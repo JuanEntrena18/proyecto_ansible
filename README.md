@@ -7,7 +7,7 @@ Objetivo: Crear una interfaz visual basada en nodos para generar y ejecutar play
 ¡Las personas que hacen posible este proyecto!
 
 | Nombre | GitHub |
-| :--- | :--- | :--- |
+| :--- | :--- |
 | **Juan Fco. Entrena Garrido** | [@JuanEntrena18] |
 | **Diego Toribio Perea** | [@DIEGO1ASIRC] |
 | **Daniel Palacios Melguizo** | [@dpalmel1312] |
