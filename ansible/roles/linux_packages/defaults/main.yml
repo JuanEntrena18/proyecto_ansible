@@ -1,0 +1,3 @@
+# Lista de paquetes apt y servicios a arrancar (se pasan como variables).
+linux_packages_list: []
+linux_packages_services: []

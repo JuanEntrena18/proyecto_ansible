@@ -1,0 +1,36 @@
+# Renombra los equipos automaticamente segun la IP.
+# Ejemplo: si prefix=AULA e IP=.15 -> AULA-PC15
+# El prefijo se configura en inventory/group_vars/all.yml
+---
+- name: Renombrar equipo (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Obtener nombre actual
+      ansible.windows.win_shell: $env:COMPUTERNAME
+      register: current_name
+      changed_when: false
+
+    - name: Mostrar nombre actual
+      ansible.builtin.debug:
+        msg: "Nombre actual: {{ current_name.stdout | trim }}"
+
+    - name: Cambiar nombre del equipo
+      ansible.windows.win_hostname:
+        name: "{{ hostname_prefix }}-PC{{ '%02d' % (ansible_host.split('.')[-1] | int) }}"
+      register: hostname_result
+
+    - name: Reiniciar si el nombre ha cambiado
+      ansible.windows.win_reboot:
+        reboot_timeout: 300
+        msg: "Reiniciando para aplicar nuevo nombre"
+      when: hostname_result.reboot_required | default(false)
+
+- name: Renombrar equipo (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Cambiar hostname
+      ansible.builtin.hostname:
+        name: "{{ hostname_prefix | lower }}-pc{{ '%02d' % (ansible_host.split('.')[-1] | int) }}"
+

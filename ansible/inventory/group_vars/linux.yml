@@ -1,0 +1,12 @@
+# --- Software de aula (se instalan con apt) ---
+linux_software_packages:
+  - git
+  - curl
+  - vim
+  - htop
+  - net-tools
+
+# --- Firewall (UFW) ---
+linux_firewall_ports:
+  - { port: "22", proto: "tcp" }
+  - { port: "80", proto: "tcp" }

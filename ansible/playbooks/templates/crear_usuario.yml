@@ -1,0 +1,49 @@
+# Crea la cuenta de alumno con carpeta de practicas.
+# Usuario y password configurables en inventory/group_vars/all.yml
+---
+- name: Crear usuario alumno (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Crear cuenta local
+      ansible.windows.win_user:
+        name: "{{ classroom_user_name }}"
+        password: "{{ classroom_user_password }}"
+        password_never_expires: true
+        state: present
+        groups:
+          - Usuarios
+        groups_action: add
+
+    - name: Crear carpeta Practicas en el escritorio publico
+      ansible.windows.win_file:
+        path: C:\Users\Public\Desktop\Practicas
+        state: directory
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "Usuario '{{ classroom_user_name }}' creado con carpeta Practicas."
+
+- name: Crear usuario alumno (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Crear cuenta
+      ansible.builtin.user:
+        name: "{{ classroom_user_name }}"
+        password: "{{ classroom_user_password | password_hash('sha512') }}"
+        shell: /bin/bash
+        create_home: true
+        groups: sudo
+        append: true
+
+    - name: Crear carpeta Practicas en el home
+      ansible.builtin.file:
+        path: "/home/{{ classroom_user_name }}/Practicas"
+        state: directory
+        owner: "{{ classroom_user_name }}"
+        mode: '0755'
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "Usuario '{{ classroom_user_name }}' creado con carpeta Practicas."

@@ -1,0 +1,60 @@
+# Instala entorno de desarrollo web:
+# - Windows: XAMPP (Apache + MySQL + PHP)
+# - Linux: LAMP (Apache + MySQL + PHP)
+---
+- name: Instalar XAMPP (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Instalar XAMPP con Chocolatey
+      chocolatey.chocolatey.win_chocolatey:
+        name: xampp
+        state: present
+
+    - name: Abrir puertos de Apache
+      community.windows.win_firewall_rule:
+        name: "{{ item.name }}"
+        localport: "{{ item.port }}"
+        protocol: tcp
+        direction: in
+        action: allow
+        state: present
+        enabled: true
+      loop:
+        - { name: "XAMPP - Apache HTTP", port: 80 }
+        - { name: "XAMPP - Apache HTTPS", port: 443 }
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "XAMPP instalado. Panel en C:\\xampp\\xampp-control.exe"
+
+- name: Instalar LAMP (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Instalar Apache + MySQL + PHP
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - mysql-server
+          - php
+          - php-mysql
+          - libapache2-mod-php
+        state: present
+        update_cache: true
+
+    - name: Arrancar Apache
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: true
+
+    - name: Arrancar MySQL
+      ansible.builtin.service:
+        name: mysql
+        state: started
+        enabled: true
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "LAMP instalado (Apache + MySQL + PHP)."

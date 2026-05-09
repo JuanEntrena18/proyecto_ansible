@@ -1,0 +1,14 @@
+# ==============================================================
+# Configuracion comun del aula (se aplica a todos los equipos)
+# Para personalizar por aula, sobreescribe estas variables
+# en un fichero de inventario o pasalas con -e
+# ==============================================================
+
+# --- Usuario alumno ---
+classroom_user_name: alumno
+classroom_user_password: "Alumno2025!"
+
+# --- Hostname ---
+# El nombre final sera PREFIJO-PCxx donde xx es el ultimo octeto de la IP.
+# Ejemplo: AULA-PC15 si la IP es 192.168.1.15
+hostname_prefix: AULA

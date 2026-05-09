@@ -1,0 +1,18 @@
+# Instala las herramientas basicas del aula.
+# La lista de paquetes se configura en inventory/group_vars/
+---
+- name: Instalar software de aula (Windows)
+  hosts: windows
+  gather_facts: false
+  roles:
+    - role: win_packages
+      vars:
+        win_packages_list: "{{ win_software_packages }}"
+
+- name: Instalar software de aula (Linux)
+  hosts: linux
+  become: true
+  roles:
+    - role: linux_packages
+      vars:
+        linux_packages_list: "{{ linux_software_packages }}"

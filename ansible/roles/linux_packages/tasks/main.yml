@@ -1,0 +1,17 @@
+---
+# Instala una lista de paquetes con apt y opcionalmente arranca servicios.
+
+- name: Instalar paquetes con apt
+  ansible.builtin.apt:
+    name: "{{ linux_packages_list }}"
+    state: present
+    update_cache: true
+  when: linux_packages_list | length > 0
+
+- name: Arrancar servicios
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop: "{{ linux_packages_services }}"
+  when: linux_packages_services | length > 0

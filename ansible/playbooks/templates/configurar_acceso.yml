@@ -1,0 +1,107 @@
+# Configura el acceso remoto completo:
+# - Windows: WinRM + Escritorio Remoto (RDP)
+# - Linux: SSH
+---
+- name: Configurar acceso remoto (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    # --- WinRM ---
+    - name: Asegurar perfil de red Privada
+      ansible.windows.win_shell: |
+        $adapter = Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -eq 'Internet' -or $_.IPv4Connectivity -eq 'LocalNetwork' } | Select-Object -First 1
+        if ($adapter -and $adapter.NetworkCategory -ne 'Private') {
+          Set-NetConnectionProfile -InterfaceIndex $adapter.InterfaceIndex -NetworkCategory Private
+          Write-Output "Cambiado a Private"
+        } else {
+          Write-Output "Ya es Private"
+        }
+      register: net_profile
+      changed_when: "'Cambiado' in net_profile.stdout"
+
+    - name: Habilitar PSRemoting
+      ansible.windows.win_shell: Enable-PSRemoting -Force -SkipNetworkProfileCheck
+      changed_when: true
+
+    - name: Configurar WinRM Basic auth
+      ansible.windows.win_shell: |
+        winrm set winrm/config/service/auth '@{Basic="true"}'
+        winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+      changed_when: true
+
+    - name: Servicio WinRM automatico
+      ansible.windows.win_service:
+        name: WinRM
+        start_mode: auto
+        state: started
+
+    - name: Firewall WinRM
+      community.windows.win_firewall_rule:
+        name: "WinRM HTTP"
+        localport: 5985
+        protocol: tcp
+        direction: in
+        action: allow
+        state: present
+        enabled: true
+
+    # --- Escritorio Remoto ---
+    - name: Activar RDP en el registro
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server
+        name: fDenyTSConnections
+        data: 0
+        type: dword
+
+    - name: Desactivar NLA
+      ansible.windows.win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp
+        name: UserAuthentication
+        data: 0
+        type: dword
+
+    - name: Firewall RDP
+      community.windows.win_firewall_rule:
+        name: "Escritorio Remoto (TCP)"
+        localport: 3389
+        protocol: tcp
+        direction: in
+        action: allow
+        state: present
+        enabled: true
+
+    - name: Servicio Escritorio Remoto
+      ansible.windows.win_service:
+        name: TermService
+        start_mode: auto
+        state: started
+
+    - name: Verificar WinRM
+      ansible.windows.win_shell: winrm enumerate winrm/config/listener
+      register: winrm_check
+      changed_when: false
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "WinRM + Escritorio Remoto configurados."
+
+- name: Configurar acceso remoto (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Instalar openssh-server
+      ansible.builtin.apt:
+        name: openssh-server
+        state: present
+        update_cache: true
+
+    - name: Arrancar SSH
+      ansible.builtin.service:
+        name: ssh
+        state: started
+        enabled: true
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: "SSH configurado y arrancado."
+

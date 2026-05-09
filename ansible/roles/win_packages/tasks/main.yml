@@ -1,0 +1,14 @@
+# Instala una lista de paquetes con el modulo win_chocolatey (idempotente).
+# Si Chocolatey no esta instalado en el equipo, el propio modulo lo instala.
+
+- name: Instalar paquetes con Chocolatey
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ win_packages_list }}"
+    state: present
+  when: win_packages_list | length > 0
+
+- name: Mostrar paquetes instalados
+  ansible.builtin.debug:
+    msg: "Paquetes instalados: {{ win_packages_list | join(', ') }}"
+  when: win_packages_list | length > 0
+

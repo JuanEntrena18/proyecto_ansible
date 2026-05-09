@@ -1,0 +1,40 @@
+# Instala Docker CE en Ubuntu/Debian (repo oficial + clave GPG).
+---
+- name: Instalar Docker CE
+  hosts: linux
+  become: true
+  tasks:
+    - name: Instalar dependencias
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: true
+
+    - name: Clave GPG de Docker
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Repo de Docker
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Instalar docker-ce
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: true
+
+    - name: Arrancar Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true

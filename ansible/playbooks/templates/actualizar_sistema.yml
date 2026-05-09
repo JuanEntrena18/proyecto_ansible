@@ -1,0 +1,35 @@
+# Actualiza el sistema operativo (Windows Update / apt upgrade).
+---
+- name: Actualizar sistema (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Buscar e instalar actualizaciones
+      ansible.windows.win_updates:
+        category_names: "{{ win_update_categories }}"
+        state: installed
+        reboot: true
+        reboot_timeout: 600
+      register: update_result
+
+    - name: Mostrar resumen
+      ansible.builtin.debug:
+        msg: "Instaladas: {{ update_result.installed_update_count | default(0) }} actualizaciones."
+
+- name: Actualizar sistema (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Actualizar cache de paquetes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 0
+
+    - name: Actualizar todos los paquetes
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Limpiar paquetes que ya no se usan
+      ansible.builtin.apt:
+        autoremove: true
+

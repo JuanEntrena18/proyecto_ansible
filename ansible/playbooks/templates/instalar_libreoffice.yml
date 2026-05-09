@@ -1,0 +1,20 @@
+# Instala LibreOffice (alternativa gratuita a MS Office).
+---
+- name: Instalar LibreOffice (Windows)
+  hosts: windows
+  gather_facts: false
+  roles:
+    - role: win_packages
+      vars:
+        win_packages_list:
+          - libreoffice-fresh
+
+- name: Instalar LibreOffice (Linux)
+  hosts: linux
+  become: true
+  roles:
+    - role: linux_packages
+      vars:
+        linux_packages_list:
+          - libreoffice
+

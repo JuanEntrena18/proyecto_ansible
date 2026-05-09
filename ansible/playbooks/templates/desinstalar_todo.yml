@@ -1,0 +1,138 @@
+# Desinstala todo el software instalado por los playbooks del aula.
+# Revierte: instalar_software, instalar_docker, instalar_xampp,
+#           instalar_libreoffice, crear_usuario, configurar_firewall.
+---
+- name: Desinstalar todo (Windows)
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Desinstalar XAMPP
+      chocolatey.chocolatey.win_chocolatey:
+        name: xampp
+        state: absent
+
+    - name: Desinstalar LibreOffice
+      chocolatey.chocolatey.win_chocolatey:
+        name: libreoffice-fresh
+        state: absent
+
+    - name: Desinstalar software de aula
+      chocolatey.chocolatey.win_chocolatey:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ win_software_packages | default([]) }}"
+
+    - name: Eliminar reglas de firewall de XAMPP
+      community.windows.win_firewall_rule:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "XAMPP - Apache HTTP"
+        - "XAMPP - Apache HTTPS"
+
+    - name: Eliminar reglas de firewall personalizadas
+      community.windows.win_firewall_rule:
+        name: "{{ item.name }}"
+        state: absent
+      loop: "{{ win_firewall_rules | default([]) }}"
+
+    - name: Eliminar usuario alumno
+      ansible.windows.win_user:
+        name: "{{ classroom_user_name | default('alumno') }}"
+        state: absent
+
+    - name: Eliminar carpeta Practicas
+      ansible.windows.win_file:
+        path: C:\Users\Public\Desktop\Practicas
+        state: absent
+
+    - name: Limpiar archivos temporales
+      ansible.windows.win_shell: |
+        Get-ChildItem -Path $env:TEMP\* -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+- name: Desinstalar todo (Linux)
+  hosts: linux
+  become: true
+  tasks:
+    - name: Parar servicios instalados
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - docker
+        - apache2
+        - mysql
+      ignore_errors: true
+
+    - name: Desinstalar Docker CE
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: absent
+        purge: true
+
+    - name: Eliminar repositorio de Docker
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: absent
+      ignore_errors: true
+
+    - name: Eliminar clave GPG de Docker
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: absent
+      ignore_errors: true
+
+    - name: Desinstalar LAMP
+      ansible.builtin.apt:
+        name:
+          - apache2
+          - mysql-server
+          - php
+          - php-mysql
+          - libapache2-mod-php
+        state: absent
+        purge: true
+
+    - name: Desinstalar LibreOffice
+      ansible.builtin.apt:
+        name: libreoffice
+        state: absent
+        purge: true
+
+    - name: Desinstalar software de aula
+      ansible.builtin.apt:
+        name: "{{ linux_software_packages | default([]) }}"
+        state: absent
+        purge: true
+      when: linux_software_packages is defined
+
+    - name: Desinstalar UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: absent
+        purge: true
+
+    - name: Eliminar usuario alumno
+      ansible.builtin.user:
+        name: "{{ classroom_user_name | default('alumno') }}"
+        state: absent
+        remove: true
+
+    - name: Limpiar paquetes huerfanos y cache
+      ansible.builtin.apt:
+        autoremove: true
+        purge: true
+
+    - name: Limpiar cache de apt
+      ansible.builtin.apt:
+        autoclean: true
+
+    - name: Limpiar archivos temporales
+      ansible.builtin.shell: find /tmp -mindepth 1 -delete
+      args:
+        warn: false
+      ignore_errors: true

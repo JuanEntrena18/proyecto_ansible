@@ -1,0 +1,21 @@
+# --- Software de aula (se instalan con Chocolatey) ---
+win_software_packages:
+  - vscode
+  - git
+  - python3
+  - 7zip
+  - notepadplusplus
+
+# --- Windows Update ---
+win_update_categories:
+  - SecurityUpdates
+  - CriticalUpdates
+  - UpdateRollups
+
+# --- Firewall ---
+win_firewall_rules:
+  - { name: "WinRM HTTP", port: 5985 }
+  - { name: "Escritorio Remoto", port: 3389 }
+  - { name: "HTTP", port: 80 }
+  - { name: "HTTPS", port: 443 }
+
