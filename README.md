@@ -91,10 +91,17 @@ El backend en FastAPI se ejecuta en segundo plano como un daemon gestionado por 
 - [x] Proxy Nginx configurado y activo.
 - [x] Demonización del servicio API configurada mediante Systemd.
 - [x] Compatibilidad con nodos Windows mediante protocolo WinRM y nodos Linux por SSH.
+- [x] Contenerización Total: Transición del despliegue "Bare Metal" a un entorno Dockerizado robusto
 
 ## 5. Futuros Pasos
 
 - **Desarrollo Visual (Drawflow/React Flow)**: Implementación integral de la interfaz basada en nodos para crear workflows arrastrando componentes visuales.
 - **Mapeo de Módulos**: Creación del diccionario/traductor que convierte las configuraciones del diagrama de nodos visual a formato estándar YAML de Ansible.
 - **Orquestación Asíncrona Avanzada**: Posibilidad de programar ejecuciones concurrentes o diferidas con un motor de colas.
-- **Contenerización Total**: Transición del despliegue "Bare Metal" a un entorno Dockerizado robusto (uso del `docker-compose.yml` actualmente en desarrollo).
+- **Backend**: añadir nuevas dependencias (jose, passlib, multipart, cryptography)
+- **Backend**: Implementar login, JWT, dependencias de autentificación, cifrado de credentials.json en main.py
+- **Backend**: actualizar dockerfile con las nuevas dependencias
+- **Frontend**: añadir login modal, interceptor de JWT, UI condicional por rol en index.html
+- **Nginx**: configurar https + redirección + headers de seguridad
+- **Docker Compose**: montar certificados SSL, añadir variable DREDENTIALS_KEY
+- **Certificado SSL**: autofirmado para desarrollo
