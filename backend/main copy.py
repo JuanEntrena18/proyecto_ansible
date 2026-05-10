@@ -4,16 +4,11 @@
 # que tenemos guardados y ejecutarlos contra las maquinas que el usuario
 # elija desde la interfaz web. Para Linux usa SSH y para Windows WinRM.
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from cryptography.fernet import Fernet
-import subprocess, re, os, yaml, tempfile, json, secrets
+from typing import List
+import subprocess, re, os, yaml, tempfile, json, datetime
 
 app = FastAPI()
 
@@ -27,99 +22,8 @@ VAULT_PASS    = "/opt/ansible-visual/vault_password"
 os.makedirs(CUSTOM_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
-# --- JWT y autenticacion ---
-SECRET_KEY = secrets.token_urlsafe(32)
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 24
-security = HTTPBearer(auto_error=False)
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-USERS = {
-    "admin":    {"password": None, "rol": "admin"},
-    "operador": {"password": None, "rol": "operador"},
-}
-for u in USERS:
-    USERS[u]["password"] = pwd_context.hash(u)
-
-# --- Cifrado de credentials.json ---
-fernet = None
-CREDS_KEY_FILE = os.path.join(ANSIBLE_DIR, ".credentials_key")
-
-def init_crypto():
-    global fernet
-    key = os.environ.get("CREDENTIALS_KEY")
-    if key:
-        fernet = Fernet(key.encode() if not key.endswith("=") else key)
-    elif os.path.isfile(CREDS_KEY_FILE):
-        with open(CREDS_KEY_FILE) as f:
-            fernet = Fernet(f.read().strip().encode())
-    else:
-        k = Fernet.generate_key()
-        with open(CREDS_KEY_FILE, "wb") as f:
-            f.write(k)
-        fernet = Fernet(k)
-
-init_crypto()
-
-def load_creds():
-    if not os.path.isfile(CREDS_FILE):
-        return {}
-    try:
-        with open(CREDS_FILE) as f:
-            content = f.read().strip()
-        if not content:
-            return {}
-        if fernet:
-            try:
-                return json.loads(fernet.decrypt(content.encode()).decode())
-            except Exception:
-                pass
-        return json.loads(content)
-    except (json.JSONDecodeError, IOError):
-        return {}
-
-def save_creds(data):
-    text = json.dumps(data, indent=2)
-    if fernet:
-        text = fernet.encrypt(text.encode()).decode()
-    with open(CREDS_FILE, "w") as f:
-        f.write(text)
-
-# --- Funciones de autenticacion ---
-
-def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
-
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    to_encode["exp"] = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-async def get_current_user(auth: HTTPAuthorizationCredentials = Depends(security)):
-    if auth is None:
-        raise HTTPException(401, "Token requerido")
-    try:
-        payload = jwt.decode(auth.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        role = payload.get("rol")
-        if not username or not role:
-            raise HTTPException(401, "Token invalido")
-        return {"username": username, "rol": role}
-    except JWTError:
-        raise HTTPException(401, "Token invalido o expirado")
-
-async def require_admin(current_user=Depends(get_current_user)):
-    if current_user["rol"] != "admin":
-        raise HTTPException(403, "Se requiere rol de administrador")
-    return current_user
-
 
 # --- Modelos de datos para las peticiones ---
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
 
 class PlaybookData(BaseModel):
     nombre: str
@@ -139,26 +43,27 @@ class ExecuteData(BaseModel):
     hosts: List[HostInfo]
     credenciales: Credenciales
 
-class CredencialesGuardar(BaseModel):
-    linux_user: Optional[str] = None
-    linux_pass: Optional[str] = None
-    win_user: Optional[str] = None
-    win_pass: Optional[str] = None
-
 
 # --- Funciones de validacion ---
+# Aqui metemos comprobaciones para que no nos cuelen nombres raros
+# ni rutas peligrosas. Basico pero necesario.
 
 def nombre_ok(nombre):
+    """Comprueba que el nombre del archivo no tenga cosas raras tipo ../ o barras"""
     return bool(nombre and ".." not in nombre and "/" not in nombre
                 and "\\" not in nombre and re.match(r"^[a-zA-Z0-9_\-]+\.yml$", nombre))
 
 def ip_ok(ip):
+    """Formato IPv4 basico: cuatro grupos de numeros separados por puntos"""
     return bool(re.match(r"^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$", ip))
 
 def ruta_segura(ruta, directorio_base):
+    """Esto lo vimos en la asignatura de seguridad: evitar path traversal"""
     return os.path.realpath(ruta).startswith(os.path.realpath(directorio_base))
 
+
 def detectar_os_playbook(ruta):
+    """Lee un playbook y detecta a que SO va dirigido segun las directivas hosts:"""
     try:
         with open(ruta) as f:
             contenido = f.read()
@@ -174,9 +79,11 @@ def detectar_os_playbook(ruta):
         pass
     return "ambos"
 
+
 def log_execution(playbook, hosts, usuario, resultado):
+    """Guarda un registro de cada ejecucion para auditoria"""
     entrada = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.datetime.now().isoformat(),
         "playbook": playbook,
         "hosts": [h.ip for h in hosts],
         "usuario": usuario,
@@ -189,26 +96,6 @@ def log_execution(playbook, hosts, usuario, resultado):
         pass
 
 
-# --- Endpoints de autenticacion ---
-
-@app.post("/login")
-def login(data: LoginRequest):
-    user = USERS.get(data.username)
-    if not user or not verify_password(data.password, user["password"]):
-        raise HTTPException(401, "Usuario o contrasena incorrectos")
-    token = create_access_token({"sub": data.username, "rol": user["rol"]})
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "rol": user["rol"],
-        "username": data.username
-    }
-
-@app.get("/me")
-def me(current_user=Depends(get_current_user)):
-    return current_user
-
-
 # GET / - para comprobar que el backend esta vivo
 @app.get("/")
 def raiz():
@@ -216,48 +103,34 @@ def raiz():
 
 
 # GET /credentials - devuelve las credenciales que haya en el json
-# Solo accesible para admin
+# Si el archivo no existe o esta vacio, devuelve todo en blanco
+# y ya las pondra el usuario a mano desde la web
 @app.get("/credentials")
-def obtener_credenciales(current_user=Depends(require_admin)):
-    data = load_creds()
-    return {
-        "estado": "OK",
-        "linux_user": data.get("linux_user", ""),
-        "linux_tiene_pass": bool(data.get("linux_pass", "")),
-        "win_user": data.get("win_user", ""),
-        "win_tiene_pass": bool(data.get("win_pass", ""))
-    }
+def obtener_credenciales():
+    if os.path.isfile(CREDS_FILE):
+        try:
+            with open(CREDS_FILE) as f:
+                data = json.load(f)
+            return {
+                "estado": "OK",
+                "linux_user": data.get("linux_user", ""),
+                "linux_pass": data.get("linux_pass", ""),
+                "win_user": data.get("win_user", ""),
+                "win_pass": data.get("win_pass", "")
+            }
+        except (json.JSONDecodeError, IOError):
+            pass
+    return {"estado": "OK", "linux_user": "", "linux_pass": "", "win_user": "", "win_pass": ""}
 
 
-# POST /credentials - guarda las credenciales que manda el profesor desde la web
-# Solo accesible para admin. Se guardan cifradas en disco.
-@app.post("/credentials")
-def guardar_credenciales(data: CredencialesGuardar, current_user=Depends(require_admin)):
-    actual = load_creds()
-    if data.linux_user is not None:
-        actual["linux_user"] = data.linux_user
-    if data.linux_pass is not None and data.linux_pass != "":
-        actual["linux_pass"] = data.linux_pass
-    if data.win_user is not None:
-        actual["win_user"] = data.win_user
-    if data.win_pass is not None and data.win_pass != "":
-        actual["win_pass"] = data.win_pass
-    for campo in ("linux_user", "win_user"):
-        val = actual.get(campo, "")
-        if val and not re.match(r"^[a-zA-Z0-9_\-\.@]+$", val):
-            raise HTTPException(400, f"Nombre de usuario no valido en '{campo}'")
-    try:
-        save_creds(actual)
-    except IOError as e:
-        raise HTTPException(500, f"No se pudo guardar: {e}")
-    return {"estado": "OK", "mensaje": "Credenciales guardadas correctamente"}
-
-
-# GET /scan - escanea la red con nmap
+# GET /scan - aqui es donde entra nmap
+# Buscamos los puertos 22 (SSH, o sea Linux) y 5985 (WinRM, o sea Windows)
+# y con eso diferenciamos el SO de cada maquina que encontremos
 @app.get("/scan")
-def escanear_red(subnet: str = "192.168.1.0/24", current_user=Depends(get_current_user)):
+def escanear_red(subnet: str = "192.168.1.0/24"):
     if not re.match(r"^[0-9./]+$", subnet):
         return {"estado": "ERROR", "detalle": "Formato de red no valido"}
+
     try:
         resultado = subprocess.run(
             ["/usr/bin/nmap", "-p", "22,5985", "-T4", "--open", "-oG", "-", subnet],
@@ -265,20 +138,25 @@ def escanear_red(subnet: str = "192.168.1.0/24", current_user=Depends(get_curren
         )
     except subprocess.TimeoutExpired:
         return {"estado": "ERROR", "detalle": "El escaneo ha tardado demasiado"}
+
     equipos = []
     for linea in resultado.stdout.splitlines():
         if "Host:" not in linea or "/open" not in linea:
             continue
+
         ip_match = re.search(r'Host: ([0-9.]+)', linea)
         if not ip_match:
             continue
         ip = ip_match.group(1)
+
         tiene_ssh   = "22/open" in linea
         tiene_winrm = "5985/open" in linea
+
         if tiene_winrm:
             os_name, icon = "Windows", "fab fa-windows"
         elif tiene_ssh:
             os_name, icon = "Linux", "fab fa-linux"
+            # a veces nmap pilla el banner de SSH y podemos sacar la distro
             banner = re.search(r'//ssh//(.*?)/', linea)
             if banner:
                 b = banner.group(1).lower()
@@ -288,13 +166,17 @@ def escanear_red(subnet: str = "192.168.1.0/24", current_user=Depends(get_curren
                 elif "windows" in b:   os_name, icon = "Windows", "fab fa-windows"
         else:
             os_name, icon = "Desconocido", "fas fa-question-circle"
+
         equipos.append({"ip": ip, "os": os_name, "icon": icon})
+
     return {"estado": "OK", "equipos": equipos}
 
 
-# GET /playbooks - lista todos los playbooks disponibles
+# GET /playbooks - lista todos los que hay (tanto los que vienen de serie
+# como los que haya creado el usuario)
+# Ahora incluye el campo os_target para que el frontend sepa a que SO va cada uno
 @app.get("/playbooks")
-def listar_playbooks(current_user=Depends(get_current_user)):
+def listar_playbooks():
     playbooks = []
     for tipo, carpeta, editable in [("templates", TEMPLATES_DIR, False),
                                      ("custom", CUSTOM_DIR, True)]:
@@ -311,9 +193,9 @@ def listar_playbooks(current_user=Depends(get_current_user)):
     return {"estado": "OK", "playbooks": playbooks}
 
 
-# GET /logs - historial de ejecuciones (solo admin)
+# GET /logs - devuelve el historial de ejecuciones para auditoria
 @app.get("/logs")
-def obtener_logs(limit: int = 50, current_user=Depends(require_admin)):
+def obtener_logs(limit: int = 50):
     if not os.path.isfile(LOG_FILE):
         return {"estado": "OK", "logs": []}
     try:
@@ -330,45 +212,57 @@ def obtener_logs(limit: int = 50, current_user=Depends(require_admin)):
         return {"estado": "OK", "logs": []}
 
 
-# GET /playbooks/{tipo}/{nombre} - lee el contenido de un playbook
+# GET /playbooks/{tipo}/{nombre} - lee el contenido de un playbook concreto
 @app.get("/playbooks/{tipo}/{nombre}")
-def leer_playbook(tipo: str, nombre: str, current_user=Depends(get_current_user)):
+def leer_playbook(tipo: str, nombre: str):
     if tipo not in ("templates", "custom"):
         raise HTTPException(400, "El tipo tiene que ser 'templates' o 'custom'")
     if not nombre_ok(nombre):
         raise HTTPException(400, "Nombre de archivo no valido")
+
     carpeta = TEMPLATES_DIR if tipo == "templates" else CUSTOM_DIR
     ruta = os.path.join(carpeta, nombre)
+
     if not ruta_segura(ruta, carpeta):
         raise HTTPException(403, "Acceso denegado")
     if not os.path.isfile(ruta):
         raise HTTPException(404, "No se encuentra ese playbook")
+
     with open(ruta) as f:
         return {"estado": "OK", "nombre": nombre, "tipo": tipo, "contenido": f.read()}
 
 
-# POST /playbooks - guarda un playbook nuevo (solo admin)
+# POST /playbooks - para guardar un playbook nuevo hecho por el usuario
 @app.post("/playbooks")
-def guardar_playbook(data: PlaybookData, current_user=Depends(require_admin)):
+def guardar_playbook(data: PlaybookData):
     nombre = data.nombre if data.nombre.endswith(".yml") else data.nombre + ".yml"
+
     if not nombre_ok(nombre):
         raise HTTPException(400, "Nombre no valido. Solo letras, numeros, guiones y _")
+
+    # antes de guardar comprobamos que el YAML este bien formado
     try:
         yaml.safe_load(data.contenido)
     except yaml.YAMLError as e:
         raise HTTPException(400, f"El YAML tiene errores: {e}")
+
     ruta = os.path.join(CUSTOM_DIR, nombre)
     if not ruta_segura(ruta, CUSTOM_DIR):
         raise HTTPException(403, "Acceso denegado")
+
     with open(ruta, "w") as f:
         f.write(data.contenido)
+
     return {"estado": "OK", "mensaje": f"Playbook '{nombre}' guardado", "nombre": nombre}
 
 
-# POST /execute - ejecuta un playbook (solo admin)
-# Si el frontend no manda password, se coge la guardada en credentials.json
+# POST /execute - la chicha del asunto: ejecutar un playbook en una o varias maquinas
+# Lo que hacemos es montar un inventario temporal con las IPs y credenciales que nos
+# pasan, lanzar ansible-playbook y mandar la salida por streaming para que en la web
+# se vea en tiempo real. Cuando termina, borramos el inventario temporal.
 @app.post("/execute")
-def ejecutar_playbook(data: ExecuteData, current_user=Depends(require_admin)):
+def ejecutar_playbook(data: ExecuteData):
+    # primero validamos todo
     if not nombre_ok(data.playbook):
         raise HTTPException(400, "Nombre de playbook no valido")
     if data.tipo not in ("templates", "custom"):
@@ -381,58 +275,53 @@ def ejecutar_playbook(data: ExecuteData, current_user=Depends(require_admin)):
     if not re.match(r"^[a-zA-Z0-9_\-\.]+$", data.credenciales.usuario):
         raise HTTPException(400, "Nombre de usuario no valido")
 
-    password_efectiva = data.credenciales.password
-    if not password_efectiva:
-        creds_guardadas = load_creds()
-        hay_windows = any("windows" in h.os.lower() for h in data.hosts)
-        if hay_windows:
-            password_efectiva = creds_guardadas.get("win_pass", "")
-        else:
-            password_efectiva = creds_guardadas.get("linux_pass", "")
-
-    if not password_efectiva:
-        raise HTTPException(400, "No hay contrasena disponible. Configurala en Credenciales.")
-
     carpeta = TEMPLATES_DIR if data.tipo == "templates" else CUSTOM_DIR
     pb_path = os.path.realpath(os.path.join(carpeta, data.playbook))
+
     if not ruta_segura(pb_path, carpeta):
         raise HTTPException(403, "Acceso denegado")
     if not os.path.isfile(pb_path):
         raise HTTPException(404, "No se encuentra ese playbook")
 
+    # montamos el inventario en formato YAML con grupos windows/linux
+    # para que los playbooks multi-SO funcionen con hosts: windows / hosts: linux
     inv_data = {"all": {"children": {"windows": {"hosts": {}}, "linux": {"hosts": {}}}}}
     for h in data.hosts:
         if "windows" in h.os.lower():
             inv_data["all"]["children"]["windows"]["hosts"][h.ip] = {
                 "ansible_user": data.credenciales.usuario,
-                "ansible_password": password_efectiva,
+                "ansible_password": data.credenciales.password,
                 "ansible_connection": "winrm",
                 "ansible_port": 5985,
                 "ansible_winrm_scheme": "http",
                 "ansible_winrm_transport": "ntlm",
-                "ansible_become": False
+		"ansible_become": False
             }
         else:
             inv_data["all"]["children"]["linux"]["hosts"][h.ip] = {
                 "ansible_user": data.credenciales.usuario,
-                "ansible_ssh_pass": password_efectiva,
+                "ansible_ssh_pass": data.credenciales.password,
                 "ansible_become": True,
                 "ansible_become_method": "sudo",
-                "ansible_become_pass": password_efectiva
+                "ansible_become_pass": data.credenciales.password
             }
 
     inv_text = yaml.dump(inv_data, default_flow_style=False)
 
+    # creamos un archivo temporal para el inventario
     fd, inv_tmp = tempfile.mkstemp(suffix=".yml", prefix="inv_",
                                    dir=ANSIBLE_DIR + "/inventory")
     with os.fdopen(fd, "w") as f:
         f.write(inv_text)
-    os.chmod(inv_tmp, 0o600)
 
+    # montamos el comando de ansible-playbook
     cmd = ["/usr/bin/ansible-playbook", "-i", inv_tmp, pb_path]
+    # si hay fichero de vault password, lo usamos
     if os.path.isfile(VAULT_PASS):
         cmd.extend(["--vault-password-file", VAULT_PASS])
 
+    # la salida la mandamos en streaming, asi el usuario ve lo que va pasando
+    # sin tener que esperar a que acabe todo el playbook
     def generar_salida():
         resultado = "UNKNOWN"
         try:
@@ -449,13 +338,16 @@ def ejecutar_playbook(data: ExecuteData, current_user=Depends(require_admin)):
                 yield "\n--- RESULTADO: OK ---\n"
             else:
                 resultado = "ERROR (" + str(proc.returncode) + ")"
-                yield "\n--- RESULTADO: ERROR (codigo " + str(proc.returncode) + ") ---\n"
+                yield "\n--- RESULTADO: ERROR (código " + str(proc.returncode) + ") ---\n"
         except Exception as e:
             resultado = "EXCEPTION"
             yield "\nError: " + str(e) + "\n"
         finally:
+            # limpiamos el inventario temporal para no dejar credenciales tiradas
             if os.path.exists(inv_tmp):
                 os.unlink(inv_tmp)
+            # registramos la ejecucion en el log de auditoria
             log_execution(data.playbook, data.hosts, data.credenciales.usuario, resultado)
 
     return StreamingResponse(generar_salida(), media_type="text/plain")
+

@@ -3,3 +3,6 @@ uvicorn[standard]
 gunicorn
 pyyaml
 pywinrm
+python-jose[cryptography]
+passlib[bcrypt]
+cryptography

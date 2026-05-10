@@ -15,10 +15,10 @@ services:
       - ANSIBLE_CONFIG=/opt/ansible-visual/ansible/ansible.cfg
       - ANSIBLE_ROLES_PATH=/opt/ansible-visual/ansible/roles
       - ANSIBLE_COLLECTIONS_PATH=/root/.ansible/collections:/usr/share/ansible/collections
+      - CREDENTIALS_KEY=${CREDENTIALS_KEY:-}
     volumes:
       - ./ansible:/opt/ansible-visual/ansible
-      # credentials.json ya no es read-only: el backend necesita poder escribirlo
-      # cuando el profesor guarda las credenciales desde la web
+      # credentials.json: el backend lo cifra en disco con Fernet usando CREDENTIALS_KEY
       - ./config/credentials.json:/opt/ansible-visual/credentials.json
     # El backend no expone puertos directamente, nginx hace de proxy
     # Pero si necesitas acceder directo en desarrollo, descomenta:
@@ -35,6 +35,7 @@ services:
     volumes:
       - ./frontend:/var/www/ansible-visual/html:ro
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
  
   # Servicio de backup: corre en Alpine para que sea ligero
   # Hace una copia comprimida cada dia a las 02:00 de:

@@ -1,387 +1,877 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Visual/\nsible</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.theme.css">
   <style>
-    /* zona principal: canvas arriba, panel de hosts abajo */
-    .content-area { display:flex; flex-direction:column; height:calc(100vh - 114px); }
-    #drawflow { width:100%; height:280px; min-height:200px; background:#2b2b2b; background-image:radial-gradient(#444 1px,transparent 1px); background-size:25px 25px; position:relative; overflow:hidden; outline:none; }
-    .drawflow .drawflow-node { background:#1e1e1e; border:1px solid #444; color:white; width:260px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5); padding:0; }
-    .drawflow .drawflow-node .title-box { padding:8px 12px; border-radius:8px 8px 0 0; font-weight:bold; display:flex; align-items:center; gap:8px; color:white; }
-    .drawflow .drawflow-node .box { padding:10px; }
-    .drawflow .drawflow-node.node-scanner .title-box { background:#6f42c1; }
-    .node-input { background:#333; border:1px solid #555; color:#fff; width:100%; padding:5px; border-radius:4px; margin-bottom:5px; }
-    .output-terminal { background:#0d1117; color:#c9d1d9; font-family:monospace; font-size:12px; padding:12px; border-radius:6px; max-height:400px; overflow-y:auto; white-space:pre-wrap; }
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 114px);
+    }
 
-    /* panel de hosts descubiertos */
-    #hosts-panel { flex:1; background:#1a1a2e; border-top:2px solid #6f42c1; overflow-y:auto; padding:16px; }
-    #hosts-panel .panel-header { color:#aaa; font-size:13px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-    #hosts-panel .panel-header i { color:#6f42c1; }
-    #hosts-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
-    .host-card { background:#1e1e1e; border:1px solid #444; border-radius:8px; padding:0; cursor:default; transition: border-color 0.2s, box-shadow 0.2s; }
-    .host-card .hc-title { padding:8px 12px; border-radius:8px 8px 0 0; font-weight:bold; display:flex; align-items:center; gap:8px; color:white; font-size:13px; }
-    .host-card.os-linux .hc-title { background:#28a745; }
-    .host-card.os-windows .hc-title { background:#0078d4; }
-    .host-card .hc-body { padding:10px; font-family:monospace; font-weight:bold; font-size:14px; color:#fff; }
-    .host-card.drag-over { border:2px solid #ffc107; box-shadow:0 0 12px rgba(255,193,7,0.4); }
-    .host-card.node-running { border:2px solid #ffc107; animation: pulso 1s infinite; }
-    .host-card.node-ok { border:2px solid #28a745; box-shadow:0 0 12px rgba(40,167,69,0.5); }
-    .host-card.node-fail { border:2px solid #dc3545; box-shadow:0 0 12px rgba(220,53,69,0.5); }
-    #hosts-empty { color:#555; text-align:center; padding:30px; font-size:14px; }
+    #drawflow {
+      width: 100%;
+      height: 280px;
+      min-height: 200px;
+      background: #2b2b2b;
+      background-image: radial-gradient(#444 1px, transparent 1px);
+      background-size: 25px 25px;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+    }
 
-    .pb-item { padding:10px 12px; cursor:grab; font-size:13px; color:#fff; margin:4px 8px; border-radius:6px; display:flex; align-items:center; gap:8px; background:#1e1e2e; border:1px solid #444; transition:all 0.2s ease; box-shadow:0 2px 4px rgba(0,0,0,0.3); }
-    .pb-item:hover { background:#3f6ad8; border-color:#3f6ad8; transform:translateY(-1px); box-shadow:0 4px 12px rgba(63,106,216,0.4); }
-    .pb-item:active { transform:scale(0.97); }
-    .pb-item .pb-icon { width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-    .pb-item .pb-icon.ic-install { background:#28a745; }
-    .pb-item .pb-icon.ic-config { background:#fd7e14; }
-    .pb-item .pb-icon.ic-security { background:#dc3545; }
-    .pb-item .pb-icon.ic-system { background:#6f42c1; }
-    .pb-item .pb-label { flex:1; line-height:1.3; }
-    .pb-item .pb-os { font-size:11px; opacity:0.6; display:block; }
-    /* Ocultar secciones custom al colapsar el sidebar de AdminLTE */
+    .drawflow .drawflow-node {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      color: white;
+      width: 260px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      padding: 0;
+    }
+
+    .drawflow .drawflow-node .title-box {
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+    }
+
+    .drawflow .drawflow-node .box {
+      padding: 10px;
+    }
+
+    .drawflow .drawflow-node.node-scanner .title-box {
+      background: #6f42c1;
+    }
+
+    .node-input {
+      background: #333;
+      border: 1px solid #555;
+      color: #fff;
+      width: 100%;
+      padding: 5px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+    }
+
+    .output-terminal {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    #hosts-panel {
+      flex: 1;
+      background: #1a1a2e;
+      border-top: 2px solid #6f42c1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    #hosts-panel .panel-header {
+      color: #aaa;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #hosts-panel .panel-header i {
+      color: #6f42c1;
+    }
+
+    #hosts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .host-card {
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 0;
+      cursor: default;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .host-card .hc-title {
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-size: 13px;
+    }
+
+    .host-card.os-linux .hc-title {
+      background: #28a745;
+    }
+
+    .host-card.os-windows .hc-title {
+      background: #0078d4;
+    }
+
+    .host-card .hc-body {
+      padding: 10px;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .host-card.drag-over {
+      border: 2px solid #ffc107;
+      box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
+    }
+
+    .host-card.node-running {
+      border: 2px solid #ffc107;
+      animation: pulso 1s infinite;
+    }
+
+    .host-card.node-ok {
+      border: 2px solid #28a745;
+      box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
+    }
+
+    .host-card.node-fail {
+      border: 2px solid #dc3545;
+      box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
+    }
+
+    #hosts-empty {
+      color: #555;
+      text-align: center;
+      padding: 30px;
+      font-size: 14px;
+    }
+
+    .pb-item {
+      padding: 10px 12px;
+      cursor: grab;
+      font-size: 13px;
+      color: #fff;
+      margin: 4px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e1e2e;
+      border: 1px solid #444;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .pb-item:hover {
+      background: #3f6ad8;
+      border-color: #3f6ad8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(63, 106, 216, 0.4);
+    }
+
+    .pb-item:active {
+      transform: scale(0.97);
+    }
+
+    .pb-item .pb-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .pb-item .pb-icon.ic-install {
+      background: #28a745;
+    }
+
+    .pb-item .pb-icon.ic-config {
+      background: #fd7e14;
+    }
+
+    .pb-item .pb-icon.ic-security {
+      background: #dc3545;
+    }
+
+    .pb-item .pb-icon.ic-system {
+      background: #6f42c1;
+    }
+
+    .pb-item .pb-label {
+      flex: 1;
+      line-height: 1.3;
+    }
+
+    .pb-item .pb-os {
+      font-size: 11px;
+      opacity: 0.6;
+      display: block;
+    }
+
     body.sidebar-collapse .cred-section,
-    body.sidebar-collapse .nav-header { display: none !important; }
+    body.sidebar-collapse .nav-header {
+      display: none !important;
+    }
+
     body.sidebar-collapse .pb-item .pb-label,
-    body.sidebar-collapse .pb-item .pb-os { display: none !important; }
-    body.sidebar-collapse .pb-item { justify-content: center; padding: 10px; margin: 4px; }
-    body.sidebar-collapse .pb-item .pb-icon { margin: 0; }
+    body.sidebar-collapse .pb-item .pb-os {
+      display: none !important;
+    }
 
-    @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    body.sidebar-collapse .pb-item {
+      justify-content: center;
+      padding: 10px;
+      margin: 4px;
+    }
 
-    /* Footer plano, posicionado sobre la sombra de la barra lateral para ocultarla en esa zona */
-    .main-footer { 
-      background-color: #343a40 !important; 
-      border-top: none !important; 
-      color: #888 !important; 
-      box-shadow: 0 -20px 0 0 #343a40 !important; /* Rellena cualquier hueco hacia arriba con color plano */
-      position: relative; 
-      z-index: 1040; /* Mayor que elevation-4 para que la sombra no le caiga encima */
+    body.sidebar-collapse .pb-item .pb-icon {
+      margin: 0;
+    }
+
+    @keyframes pulso {
+      0%, 100% { opacity: 1 }
+      50% { opacity: 0.6 }
+    }
+
+    .main-footer {
+      background-color: #343a40 !important;
+      border-top: none !important;
+      color: #888 !important;
+      box-shadow: 0 -20px 0 0 #343a40 !important;
+      position: relative;
+      z-index: 1040;
+    }
+
+    .cred-status {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
     }
   </style>
 </head>
+
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed dark-mode">
-<div class="wrapper">
-  <nav class="main-header navbar navbar-expand navbar-dark">
-    <ul class="navbar-nav">
-      <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a></li>
-      <li class="nav-item d-none d-sm-inline-block"><span class="nav-link font-weight-bold">Visual/\nsible</span></li>
-    </ul>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a class="nav-link text-warning" href="#" data-toggle="modal" data-target="#modalCredenciales">
-          <i class="fas fa-key"></i> Credenciales
-        </a>
-      </li>
-    </ul>
-  </nav>
+  <div class="wrapper">
+    <nav class="main-header navbar navbar-expand navbar-dark">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a></li>
+        <li class="nav-item d-none d-sm-inline-block"><span class="nav-link font-weight-bold">Visual/\nsible</span></li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item admin-only">
+          <a class="nav-link text-warning" href="#" data-toggle="modal" data-target="#modalCredenciales">
+            <i class="fas fa-key"></i> Credenciales
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-toggle="dropdown">
+            <i class="fas fa-user-circle"></i> <span id="userDisplay"></span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <span class="dropdown-item-text text-muted" id="userInfo"></span>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar sesion</a>
+          </div>
+        </li>
+      </ul>
+    </nav>
 
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <a href="#" class="brand-link"><span class="brand-text font-weight-light px-3">Visual <b>/\nsible</b></span></a>
-    <div class="sidebar"><nav class="mt-2"><ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-      <li class="nav-header">RED</li>
-      <li class="nav-item"><a href="#" class="nav-link" onclick="addScanner()"><i class="nav-icon fas fa-satellite-dish text-purple"></i><p>Scanner Red</p></a></li>
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+      <a href="#" class="brand-link"><span class="brand-text font-weight-light px-3">Visual <b>/\nsible</b></span></a>
+      <div class="sidebar">
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+            <li class="nav-header">RED</li>
+            <li class="nav-item"><a href="#" class="nav-link" onclick="addScanner()"><i
+                  class="nav-icon fas fa-satellite-dish text-purple"></i>
+                <p>Scanner Red</p>
+              </a></li>
 
-      <li class="nav-header">PLAYBOOKS</li>
-      <li id="pbList"><small class="text-muted px-3">Cargando...</small></li>
-    </ul></nav></div>
-  </aside>
+            <li class="nav-header">PLAYBOOKS</li>
+            <li id="pbList"><small class="text-muted px-3">Cargando...</small></li>
+          </ul>
+        </nav>
+      </div>
+    </aside>
 
-  <div class="content-wrapper">
-    <div class="content-area">
-      <div id="drawflow"></div>
-      <div id="hosts-panel">
-        <div class="panel-header"><i class="fas fa-network-wired"></i> Hosts descubiertos</div>
-        <div id="hosts-grid"></div>
-        <div id="hosts-empty">Escanea la red para descubrir equipos</div>
+    <div class="content-wrapper">
+      <div class="content-area">
+        <div id="drawflow"></div>
+        <div id="hosts-panel">
+          <div class="panel-header"><i class="fas fa-network-wired"></i> Hosts descubiertos</div>
+          <div id="hosts-grid"></div>
+          <div id="hosts-empty">Escanea la red para descubrir equipos</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="main-footer text-center text-sm">
+      <strong>Proyecto Visual/\nsible</strong> - Creadores: Marina Jimenez Egea, Felix David Romero Lopez, Daniel
+      Palacios Melguizo, Diego Toribio Perea, Juan Fco. Entrena Garrido
+    </footer>
+  </div>
+
+  <!-- modal de login -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title"><i class="fas fa-lock text-purple"></i> Iniciar sesion</h5>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info py-2 px-3" style="font-size:12px; background:#1e1e2e; border-color:#444;">
+            <i class="fas fa-info-circle"></i> Usuarios: <strong>admin</strong> / <strong>operador</strong> (contrasena = mismo nombre)
+          </div>
+          <div class="form-group">
+            <label class="text-muted small">Usuario</label>
+            <input type="text" id="loginUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="text-muted small">Contrasena</label>
+            <input type="password" id="loginPass" class="form-control bg-dark border-secondary text-white" placeholder="Contrasena" autocomplete="current-password">
+          </div>
+          <div id="loginError" class="text-danger small" style="display:none;"></div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button class="btn btn-primary btn-block" onclick="login()" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i> Entrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  
-  <footer class="main-footer text-center text-sm">
-    <strong>Proyecto Visual/\nsible</strong> - Creadores: Marina Jiménez Egea, Félix David Romero López, Daniel Palacios Melguizo, Diego Toribio Perea, Juan Fco. Entrena Garrido
-  </footer>
-</div>
 
-<!-- ventana modal donde sale la salida del playbook en tiempo real -->
-<div class="modal fade" id="mRes" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content bg-dark">
-  <div class="modal-header border-secondary">
-    <h5 class="modal-title"><i class="fas fa-terminal"></i> Resultado</h5>
-    <span id="rBadge" class="badge ml-2">...</span>
-    <button class="close text-white" data-dismiss="modal">&times;</button>
-  </div>
-  <div class="modal-body"><div id="rOut" class="output-terminal">Esperando...</div></div>
-  <div class="modal-footer border-secondary"><button class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
-</div></div></div>
-
-<!-- modal de credenciales -->
-<div class="modal fade" id="modalCredenciales" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content bg-dark">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title"><i class="fas fa-shield-alt text-warning"></i> Gestión de Credenciales</h5>
-        <button class="close text-white" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-4">
-          <h6 class="text-success"><i class="fab fa-linux"></i> Linux (SSH)</h6>
-          <div class="input-group input-group-sm mb-2">
-            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-user"></i></span></div>
-            <input type="text" id="linuxUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario">
-          </div>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-key"></i></span></div>
-            <input type="password" id="linuxPass" class="form-control bg-dark border-secondary text-white" placeholder="Contraseña">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i class="fas fa-eye"></i></button>
-            </div>
-          </div>
+  <!-- modal de resultado -->
+  <div class="modal fade" id="mRes" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title"><i class="fas fa-terminal"></i> Resultado</h5>
+          <span id="rBadge" class="badge ml-2">...</span>
+          <button class="close text-white" data-dismiss="modal">&times;</button>
         </div>
-        
-        <div>
-          <h6 class="text-info"><i class="fab fa-windows"></i> Windows (WinRM)</h6>
-          <div class="input-group input-group-sm mb-2">
-            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-user"></i></span></div>
-            <input type="text" id="winUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario">
-          </div>
-          <div class="input-group input-group-sm">
-            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-key"></i></span></div>
-            <input type="password" id="winPass" class="form-control bg-dark border-secondary text-white" placeholder="Contraseña">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i class="fas fa-eye"></i></button>
-            </div>
-          </div>
+        <div class="modal-body">
+          <div id="rOut" class="output-terminal">Esperando...</div>
         </div>
-      </div>
-      <div class="modal-footer border-secondary">
-        <button class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+        <div class="modal-footer border-secondary"><button class="btn btn-secondary"
+            data-dismiss="modal">Cerrar</button></div>
       </div>
     </div>
   </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<script>
-  // arrancamos el canvas de Drawflow (solo para el scanner)
-  var container = document.getElementById("drawflow");
-  const editor = new Drawflow(container);
-  editor.reroute = false;
-  editor.start();
+  <!-- modal de credenciales -->
+  <div class="modal fade" id="modalCredenciales" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title"><i class="fas fa-shield-alt text-warning"></i> Gestion de Credenciales</h5>
+          <button class="close text-white" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-secondary py-2 px-3 mb-3"
+            style="font-size:12px; background:#1e1e2e; border-color:#444;">
+            <i class="fas fa-info-circle text-info"></i>
+            Las contrasenas se guardan cifradas en el servidor y <strong>nunca</strong> se envian de vuelta al navegador.
+            Deja el campo vacio para mantener la contrasena ya guardada.
+          </div>
 
-  // lista de hosts descubiertos (se llena tras escanear)
-  var hostsData = [];
+          <div class="mb-4">
+            <h6 class="text-success"><i class="fab fa-linux"></i> Linux (SSH)</h6>
+            <div class="input-group input-group-sm mb-2">
+              <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i
+                    class="fas fa-user"></i></span></div>
+              <input type="text" id="linuxUser" class="form-control bg-dark border-secondary text-white"
+                placeholder="Usuario">
+            </div>
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i
+                    class="fas fa-key"></i></span></div>
+              <input type="password" id="linuxPass" class="form-control bg-dark border-secondary text-white"
+                placeholder="Nueva contrasena (vacio = mantener la guardada)">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i
+                    class="fas fa-eye"></i></button>
+              </div>
+            </div>
+            <small id="linuxPassStatus" class="cred-status text-muted"><i class="fas fa-circle-notch fa-spin"></i>
+              Comprobando...</small>
+          </div>
 
-  // función para mostrar/ocultar contraseña
-  function togglePass(btn) {
-    var $input = $(btn).closest('.input-group').find('input');
-    var type = $input.attr('type') === 'password' ? 'text' : 'password';
-    $input.attr('type', type);
-    $(btn).find('i').toggleClass('fa-eye fa-eye-slash');
-  }
+          <div>
+            <h6 class="text-info"><i class="fab fa-windows"></i> Windows (WinRM)</h6>
+            <div class="input-group input-group-sm mb-2">
+              <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i
+                    class="fas fa-user"></i></span></div>
+              <input type="text" id="winUser" class="form-control bg-dark border-secondary text-white"
+                placeholder="Usuario">
+            </div>
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i
+                    class="fas fa-key"></i></span></div>
+              <input type="password" id="winPass" class="form-control bg-dark border-secondary text-white"
+                placeholder="Nueva contrasena (vacio = mantener la guardada)">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i
+                    class="fas fa-eye"></i></button>
+              </div>
+            </div>
+            <small id="winPassStatus" class="cred-status text-muted"><i class="fas fa-circle-notch fa-spin"></i>
+              Comprobando...</small>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarCredenciales()">
+            <i class="fas fa-save"></i> Guardar en servidor
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  // cargar credenciales de localStorage primero
-  $('#linuxUser').val(localStorage.getItem('linuxUser') || '');
-  $('#linuxPass').val(localStorage.getItem('linuxPass') || '');
-  $('#winUser').val(localStorage.getItem('winUser') || '');
-  $('#winPass').val(localStorage.getItem('winPass') || '');
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script>
+    // -------------------------------------------------------------------------
+    // AUTENTICACION: estado global y helpers
+    // -------------------------------------------------------------------------
+    var jwtToken = sessionStorage.getItem('jwt');
+    var userRole = sessionStorage.getItem('rol');
+    var userName = sessionStorage.getItem('username');
 
-  // si hay credenciales guardadas en el json, las rellenamos
-  $.get('/api/credentials', function(r) {
-    if (r.linux_user) $('#linuxUser').val(r.linux_user);
-    if (r.linux_pass) $('#linuxPass').val(r.linux_pass);
-    if (r.win_user)   $('#winUser').val(r.win_user);
-    if (r.win_pass)   $('#winPass').val(r.win_pass);
-  });
-
-  // guardar credenciales introducidas en localStorage para persistencia
-  $('#linuxUser, #linuxPass, #winUser, #winPass').on('input change', function() {
-    localStorage.setItem(this.id, this.value);
-  });
-
-  // pedimos la lista de playbooks al backend y los metemos en el sidebar
-  $.get('/api/playbooks', function(r) {
-    var html = '';
-    (r.playbooks || []).forEach(function(p) {
-      // nombre limpio: quitar .yml, reemplazar _ por espacios, capitalizar
-      var label = p.nombre.replace('.yml','').replace(/_/g,' ').replace(/\b\w/g, function(l){ return l.toUpperCase(); });
-      // icono segun el SO al que va dirigido el playbook
-      var osText = '';
-      if (p.os_target === 'ambos') osText = '<span class="pb-os"><i class="fab fa-linux"></i> <i class="fab fa-windows"></i> Linux &amp; Windows</span>';
-      else if (p.os_target === 'linux') osText = '<span class="pb-os"><i class="fab fa-linux"></i> Linux</span>';
-      else if (p.os_target === 'windows') osText = '<span class="pb-os"><i class="fab fa-windows"></i> Windows</span>';
-      // icono contextual segun el tipo de playbook
-      var n = p.nombre.toLowerCase();
-      var iconCls = 'ic-system', iconFa = 'fa-cog';
-      if (n.indexOf('instalar') >= 0) { iconCls = 'ic-install'; iconFa = 'fa-download'; }
-      else if (n.indexOf('firewall') >= 0) { iconCls = 'ic-security'; iconFa = 'fa-shield-alt'; }
-      else if (n.indexOf('usuario') >= 0) { iconCls = 'ic-config'; iconFa = 'fa-user-plus'; }
-      else if (n.indexOf('acceso') >= 0) { iconCls = 'ic-security'; iconFa = 'fa-key'; }
-      else if (n.indexOf('actualizar') >= 0) { iconCls = 'ic-system'; iconFa = 'fa-sync-alt'; }
-      else if (n.indexOf('renombrar') >= 0) { iconCls = 'ic-config'; iconFa = 'fa-pen'; }
-      var src = p.tipo + '/' + p.nombre;
-      html += '<div class="pb-item" draggable="true" ondragstart="dragPb(event,\'' + src + '\',\'' + p.nombre + '\')">' 
-        + '<div class="pb-icon ' + iconCls + '"><i class="fas ' + iconFa + '"></i></div>'
-        + '<div class="pb-label">' + label + osText + '</div></div>';
-    });
-    $('#pbList').html(html || '<small class="text-muted px-3">Ninguno</small>');
-  });
-
-  // cuando el usuario empieza a arrastrar un playbook guardamos los datos
-  function dragPb(ev, src, nombre) {
-    ev.dataTransfer.setData('pb-src', src);
-    ev.dataTransfer.setData('pb-nombre', nombre);
-  }
-
-  // funcion para ejecutar un playbook en un host card
-  function ejecutarEnHost(cardEl, src, nombre) {
-    var ip = cardEl.dataset.ip;
-    var os = cardEl.dataset.os;
-    var label = nombre.replace('.yml','');
-    if (!confirm('¿Ejecutar "' + label + '" en ' + ip + ' (' + os + ')?')) return;
-
-    // pillamos las credenciales del sidebar segun si es Windows o Linux
-    var creds;
-    if (os.toLowerCase().indexOf('windows') >= 0) {
-      creds = { usuario: $('#winUser').val() || 'Administrator', password: $('#winPass').val() || '' };
-    } else {
-      creds = { usuario: $('#linuxUser').val() || 'ubuntu', password: $('#linuxPass').val() || '' };
+    // wrapper para fetch con token JWT
+    function apiFetch(url, options) {
+      options = options || {};
+      options.headers = options.headers || {};
+      if (jwtToken) options.headers['Authorization'] = 'Bearer ' + jwtToken;
+      return fetch(url, options);
     }
 
-    if (!creds.password) { alert('Falta la contraseña, rellénala en el sidebar.'); return; }
+    // mostrar modal de login bloqueante
+    function showLogin() {
+      $('#loginError').hide();
+      $('#loginPass').val('');
+      $('#loginUser').focus();
+      $('#modalLogin').modal('show');
+    }
 
-    // ponemos el borde amarillo de "ejecutando"
-    $(cardEl).removeClass('node-ok node-fail').addClass('node-running');
-
-    // abrimos el modal y lanzamos la peticion al backend
-    $('#rOut').text('');
-    $('#rBadge').text('EJECUTANDO').attr('class','badge ml-2 badge-warning');
-    $('#mRes').modal('show');
-
-    var parts = src.split('/');
-    fetch('/api/execute', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ playbook: parts[1], tipo: parts[0], hosts: [{ip: ip, os: os}], credenciales: creds })
-    }).then(function(resp) {
-      var reader = resp.body.getReader();
-      var decoder = new TextDecoder();
-      var $out = $('#rOut');
-      function leer() {
-        reader.read().then(function(result) {
-          if (result.done) {
-            var texto = $out.text();
-            var ok = texto.indexOf('RESULTADO: OK') >= 0;
-            $('#rBadge').text(ok ? 'OK' : 'ERROR').attr('class','badge ml-2 badge-' + (ok ? 'success' : 'danger'));
-            // borde verde si ha ido bien, rojo si ha fallado
-            $(cardEl).removeClass('node-running').addClass(ok ? 'node-ok' : 'node-fail');
-            return;
-          }
-          $out.append(decoder.decode(result.value, {stream: true}));
-          $out[0].scrollTop = $out[0].scrollHeight;
-          leer();
-        });
+    // login
+    function login() {
+      var username = $('#loginUser').val().trim();
+      var password = $('#loginPass').val();
+      if (!username || !password) {
+        $('#loginError').text('Completa ambos campos.').show();
+        return;
       }
-      leer();
-    }).catch(function() {
-      $('#rOut').text('No se ha podido conectar con el backend.');
-      $('#rBadge').text('ERROR').attr('class','badge ml-2 badge-danger');
-      $(cardEl).removeClass('node-running').addClass('node-fail');
-    });
-  }
+      $('#loginError').hide();
+      $('#loginBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Entrando...');
 
-  // pinta las tarjetas de hosts en el grid
-  function renderHosts(equipos) {
-    hostsData = equipos;
-    var $grid = $('#hosts-grid');
-    $grid.empty();
-
-    if (!equipos || equipos.length === 0) {
-      $('#hosts-empty').show();
-      return;
+      $.ajax({
+        url: '/api/login',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ username: username, password: password }),
+        success: function (data) {
+          jwtToken = data.access_token;
+          userRole = data.rol;
+          userName = data.username;
+          sessionStorage.setItem('jwt', jwtToken);
+          sessionStorage.setItem('rol', userRole);
+          sessionStorage.setItem('username', userName);
+          $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
+          $('#modalLogin').modal('hide');
+          actualizarUI();
+          initApp();
+        },
+        error: function () {
+          $('#loginError').text('Usuario o contrasena incorrectos.').show();
+        },
+        complete: function () {
+          $('#loginBtn').prop('disabled', false).html('<i class="fas fa-sign-in-alt"></i> Entrar');
+        }
+      });
     }
-    $('#hosts-empty').hide();
 
-    equipos.forEach(function(eq, i) {
-      var isWin = eq.os.toLowerCase().indexOf('windows') >= 0;
-      var osClass = isWin ? 'os-windows' : 'os-linux';
-      var card = $('<div class="host-card ' + osClass + '" data-ip="' + eq.ip + '" data-os="' + eq.os + '">'
-        + '<div class="hc-title"><i class="' + eq.icon + '"></i> ' + eq.os + '</div>'
-        + '<div class="hc-body"><i class="fas fa-network-wired mr-1 text-success"></i>' + eq.ip + '</div>'
-        + '</div>');
+    // cerrar sesion
+    function logout() {
+      sessionStorage.clear();
+      jwtToken = null;
+      userRole = null;
+      userName = null;
+      location.reload();
+    }
 
-      // drag & drop: el playbook se suelta encima de la tarjeta
-      card.on('dragover', function(ev) { ev.preventDefault(); $(this).addClass('drag-over'); });
-      card.on('dragleave', function() { $(this).removeClass('drag-over'); });
-      card.on('drop', function(ev) {
-        ev.preventDefault();
-        $(this).removeClass('drag-over');
-        var src = ev.originalEvent.dataTransfer.getData('pb-src');
-        var nombre = ev.originalEvent.dataTransfer.getData('pb-nombre');
-        if (!src) return;
-        ejecutarEnHost(this, src, nombre);
+    // actualizar elementos de la UI segun autenticacion
+    function actualizarUI() {
+      if (userName) {
+        $('#userDisplay').text(userName);
+        $('#userInfo').text('Rol: ' + (userRole === 'admin' ? 'Administrador' : 'Operador'));
+      }
+      if (userRole !== 'admin') {
+        $('.admin-only').hide();
+      } else {
+        $('.admin-only').show();
+      }
+    }
+
+    // interceptor 401 global
+    $(document).ajaxError(function (event, jqxhr) {
+      if (jqxhr.status === 401 && jwtToken) {
+        sessionStorage.clear();
+        jwtToken = null;
+        userRole = null;
+        userName = null;
+        mostrarToast('Sesion expirada. Inicia sesion de nuevo.', 'warning');
+        showLogin();
+      }
+      if (jqxhr.status === 403) {
+        mostrarToast('No tienes permisos para esta accion.', 'danger');
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // INICIO: comprobar autenticacion al cargar la pagina
+    // -------------------------------------------------------------------------
+    $(function () {
+      if (jwtToken) {
+        $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
+        actualizarUI();
+        initApp();
+      } else {
+        showLogin();
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // INIT: se ejectua despues de autenticarse
+    // -------------------------------------------------------------------------
+    function initApp() {
+      // DRAWFLOW
+      var container = document.getElementById("drawflow");
+      const editor = new Drawflow(container);
+      editor.reroute = false;
+      editor.start();
+
+      var hostsData = [];
+      var passGuardada = { linux: false, win: false };
+
+      // --- togglePass ---
+      window.togglePass = function (btn) {
+        var $input = $(btn).closest('.input-group').find('input');
+        var type = $input.attr('type') === 'password' ? 'text' : 'password';
+        $input.attr('type', type);
+        $(btn).find('i').toggleClass('fa-eye fa-eye-slash');
+      };
+
+      // --- mostrarToast ---
+      window.mostrarToast = function (msg, tipo) {
+        var color = tipo === 'success' ? '#28a745' : (tipo === 'warning' ? '#ffc107' : '#dc3545');
+        var $t = $('<div style="position:fixed;bottom:24px;right:24px;z-index:9999;background:'
+          + color + ';color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;'
+          + 'box-shadow:0 4px 12px rgba(0,0,0,0.5);max-width:360px;">' + msg + '</div>');
+        $('body').append($t);
+        setTimeout(function () { $t.fadeOut(400, function () { $t.remove(); }); }, 3500);
+      };
+
+      // --- actualizarIndicador ---
+      window.actualizarIndicador = function (tipo, tienePass) {
+        passGuardada[tipo] = tienePass;
+        var $el = $('#' + tipo + 'PassStatus');
+        if (tienePass) {
+          $el.attr('class', 'cred-status text-success')
+            .html('<i class="fas fa-check-circle"></i> Contrasena guardada en servidor');
+        } else {
+          $el.attr('class', 'cred-status text-warning')
+            .html('<i class="fas fa-exclamation-triangle"></i> Sin contrasena guardada');
+        }
+      };
+
+      // --- Cargar credenciales ---
+      $('#linuxUser').val(sessionStorage.getItem('linuxUser') || '');
+      $('#winUser').val(sessionStorage.getItem('winUser') || '');
+
+      if (userRole === 'admin') {
+        $.get('/api/credentials', function (r) {
+          if (r.linux_user) {
+            $('#linuxUser').val(r.linux_user);
+            sessionStorage.setItem('linuxUser', r.linux_user);
+          }
+          if (r.win_user) {
+            $('#winUser').val(r.win_user);
+            sessionStorage.setItem('winUser', r.win_user);
+          }
+          actualizarIndicador('linux', !!r.linux_tiene_pass);
+          actualizarIndicador('win', !!r.win_tiene_pass);
+        }).fail(function () {
+          actualizarIndicador('linux', false);
+          actualizarIndicador('win', false);
+        });
+      } else {
+        actualizarIndicador('linux', false);
+        actualizarIndicador('win', false);
+      }
+
+      $('#linuxUser').on('input change', function () { sessionStorage.setItem('linuxUser', this.value); });
+      $('#winUser').on('input change', function () { sessionStorage.setItem('winUser', this.value); });
+
+      // --- guardarCredenciales ---
+      window.guardarCredenciales = function () {
+        var payload = {};
+        var lu = $('#linuxUser').val().trim();
+        var lp = $('#linuxPass').val();
+        var wu = $('#winUser').val().trim();
+        var wp = $('#winPass').val();
+
+        if (lu) payload.linux_user = lu;
+        if (lp) payload.linux_pass = lp;
+        if (wu) payload.win_user = wu;
+        if (wp) payload.win_pass = wp;
+
+        if (Object.keys(payload).length === 0) {
+          mostrarToast('No hay nada nuevo que guardar.', 'warning');
+          return;
+        }
+
+        var $btn = $('#modalCredenciales .btn-primary').prop('disabled', true)
+          .html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+
+        $.ajax({
+          url: '/api/credentials',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(payload),
+          success: function () {
+            $('#linuxPass, #winPass').val('');
+            $.get('/api/credentials', function (r) {
+              if (r.linux_user) sessionStorage.setItem('linuxUser', r.linux_user);
+              if (r.win_user) sessionStorage.setItem('winUser', r.win_user);
+              actualizarIndicador('linux', !!r.linux_tiene_pass);
+              actualizarIndicador('win', !!r.win_tiene_pass);
+            });
+            $('#modalCredenciales').modal('hide');
+            mostrarToast('<i class="fas fa-check-circle"></i> Credenciales guardadas correctamente', 'success');
+          },
+          error: function (xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.detail) || 'Error desconocido';
+            mostrarToast('<i class="fas fa-times-circle"></i> Error al guardar: ' + msg, 'danger');
+          },
+          complete: function () {
+            $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar en servidor');
+          }
+        });
+      };
+
+      // --- Cargar playbooks ---
+      $.get('/api/playbooks', function (r) {
+        var html = '';
+        (r.playbooks || []).forEach(function (p) {
+          var label = p.nombre.replace('.yml', '').replace(/_/g, ' ')
+            .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+          var osText = '';
+          if (p.os_target === 'ambos') osText = '<span class="pb-os"><i class="fab fa-linux"></i> <i class="fab fa-windows"></i> Linux &amp; Windows</span>';
+          else if (p.os_target === 'linux') osText = '<span class="pb-os"><i class="fab fa-linux"></i> Linux</span>';
+          else if (p.os_target === 'windows') osText = '<span class="pb-os"><i class="fab fa-windows"></i> Windows</span>';
+          var n = p.nombre.toLowerCase();
+          var iconCls = 'ic-system', iconFa = 'fa-cog';
+          if (n.indexOf('instalar') >= 0) { iconCls = 'ic-install'; iconFa = 'fa-download'; }
+          else if (n.indexOf('firewall') >= 0) { iconCls = 'ic-security'; iconFa = 'fa-shield-alt'; }
+          else if (n.indexOf('usuario') >= 0) { iconCls = 'ic-config'; iconFa = 'fa-user-plus'; }
+          else if (n.indexOf('acceso') >= 0) { iconCls = 'ic-security'; iconFa = 'fa-key'; }
+          else if (n.indexOf('actualizar') >= 0) { iconCls = 'ic-system'; iconFa = 'fa-sync-alt'; }
+          else if (n.indexOf('renombrar') >= 0) { iconCls = 'ic-config'; iconFa = 'fa-pen'; }
+          var src = p.tipo + '/' + p.nombre;
+          html += '<div class="pb-item" draggable="true" ondragstart="dragPb(event,\'' + src + '\',\'' + p.nombre + '\')">'
+            + '<div class="pb-icon ' + iconCls + '"><i class="fas ' + iconFa + '"></i></div>'
+            + '<div class="pb-label">' + label + osText + '</div></div>';
+        });
+        $('#pbList').html(html || '<small class="text-muted px-3">Ninguno</small>');
       });
 
-      $grid.append(card);
-      // animacion de entrada
-      anime({ targets: card[0], scale:[0,1], opacity:[0,1], duration:600, delay:i*80, easing:'easeOutElastic(1,.8)' });
-    });
-  }
+      window.dragPb = function (ev, src, nombre) {
+        ev.dataTransfer.setData('pb-src', src);
+        ev.dataTransfer.setData('pb-nombre', nombre);
+      };
 
-  // el scanner solo se puede crear una vez
-  var scannerCreado = false;
-  function addScanner() {
-    if (scannerCreado) return;
-    scannerCreado = true;
-    var px = 80, py = 60;
-    // sin outputs ni inputs, ya no hay conexiones
-    var nid = editor.addNode('scanner', 0, 0, px, py, 'node-scanner', {},
-      '<div class="title-box"><i class="fas fa-satellite-dish"></i> Escáner de Red</div>'
-      + '<div class="box">'
-      + '<small>Rango CIDR</small>'
-      + '<input type="text" class="node-input subnet-input" value="192.168.1.0/24">'
-      + '<button class="btn btn-block btn-outline-light btn-sm mt-2" onclick="doScan(this)">'
-      + '<i class="fas fa-search"></i> Escanear</button>'
-      + '<div class="mt-2"><small class="text-muted st">Listo.</small></div>'
-      + '</div>', false);
-    anime({ targets:'#node-'+nid, scale:[0,1], opacity:[0,1], duration:800, easing:'easeOutElastic(1,.8)' });
-  }
+      // --- ejecutarEnHost ---
+      window.ejecutarEnHost = function (cardEl, src, nombre) {
+        var ip = cardEl.dataset.ip;
+        var os = cardEl.dataset.os;
+        var label = nombre.replace('.yml', '');
+        if (!confirm('Ejecutar "' + label + '" en ' + ip + ' (' + os + ')?')) return;
 
-  // lanza el escaneo y mete los hosts en el panel grid
-  function doScan(btn) {
-    var $b = $(btn), $box = $b.closest('.box'), $st = $box.find('.st');
-    var subnet = $box.find('.subnet-input').val();
-    var orig = $b.html();
-    $b.html('<i class="fas fa-spinner fa-spin"></i> Escaneando...').prop('disabled',true);
-    $st.html('Analizando red...');
+        var esWindows = os.toLowerCase().indexOf('windows') >= 0;
+        var creds;
+        if (esWindows) {
+          creds = {
+            usuario: $('#winUser').val() || 'Administrator',
+            password: $('#winPass').val() || ''
+          };
+        } else {
+          creds = {
+            usuario: $('#linuxUser').val() || 'ubuntu',
+            password: $('#linuxPass').val() || ''
+          };
+        }
 
-    $.get('/api/scan?subnet=' + encodeURIComponent(subnet), function(r) {
-      if (r.equipos && r.equipos.length > 0) {
-        $st.html('<span class="text-success">' + r.equipos.length + ' hosts encontrados</span>');
-        renderHosts(r.equipos);
-      } else {
-        $st.html('<span class="text-danger">No se encontró nada.</span>');
-        renderHosts([]);
-      }
-    }).fail(function() {
-      $st.text('No se ha podido conectar.');
-    }).always(function() {
-      $b.html(orig).prop('disabled',false);
-    });
-  }
+        var tipoPass = esWindows ? 'win' : 'linux';
+        if (!creds.password && !passGuardada[tipoPass]) {
+          mostrarToast(
+            '<i class="fas fa-exclamation-triangle"></i> No hay contrasena para ' +
+            (esWindows ? 'Windows' : 'Linux') +
+            '. Abrela en Credenciales y guardala primero.',
+            'danger'
+          );
+          return;
+        }
 
-  // que el scanner aparezca nada mas cargar la pagina
-  addScanner();
-</script>
+        $(cardEl).removeClass('node-ok node-fail').addClass('node-running');
+        $('#rOut').text('');
+        $('#rBadge').text('EJECUTANDO').attr('class', 'badge ml-2 badge-warning');
+        $('#mRes').modal('show');
+
+        var parts = src.split('/');
+        apiFetch('/api/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playbook: parts[1],
+            tipo: parts[0],
+            hosts: [{ ip: ip, os: os }],
+            credenciales: creds
+          })
+        }).then(function (resp) {
+          if (resp.status === 401) throw new Error('No autorizado');
+          var reader = resp.body.getReader();
+          var decoder = new TextDecoder();
+          var $out = $('#rOut');
+          function leer() {
+            reader.read().then(function (result) {
+              if (result.done) {
+                var texto = $out.text();
+                var ok = texto.indexOf('RESULTADO: OK') >= 0;
+                $('#rBadge').text(ok ? 'OK' : 'ERROR')
+                  .attr('class', 'badge ml-2 badge-' + (ok ? 'success' : 'danger'));
+                $(cardEl).removeClass('node-running').addClass(ok ? 'node-ok' : 'node-fail');
+                return;
+              }
+              $out.append(decoder.decode(result.value, { stream: true }));
+              $out[0].scrollTop = $out[0].scrollHeight;
+              leer();
+            });
+          }
+          leer();
+        }).catch(function () {
+          $('#rOut').text('No se ha podido conectar con el backend.');
+          $('#rBadge').text('ERROR').attr('class', 'badge ml-2 badge-danger');
+          $(cardEl).removeClass('node-running').addClass('node-fail');
+        });
+      };
+
+      // --- renderHosts ---
+      window.renderHosts = function (equipos) {
+        hostsData = equipos;
+        var $grid = $('#hosts-grid');
+        $grid.empty();
+        if (!equipos || equipos.length === 0) {
+          $('#hosts-empty').show();
+          return;
+        }
+        $('#hosts-empty').hide();
+        equipos.forEach(function (eq, i) {
+          var isWin = eq.os.toLowerCase().indexOf('windows') >= 0;
+          var osClass = isWin ? 'os-windows' : 'os-linux';
+          var card = $('<div class="host-card ' + osClass + '" data-ip="' + eq.ip + '" data-os="' + eq.os + '">'
+            + '<div class="hc-title"><i class="' + eq.icon + '"></i> ' + eq.os + '</div>'
+            + '<div class="hc-body"><i class="fas fa-network-wired mr-1 text-success"></i>' + eq.ip + '</div>'
+            + '</div>');
+          card.on('dragover', function (ev) { ev.preventDefault(); $(this).addClass('drag-over'); });
+          card.on('dragleave', function () { $(this).removeClass('drag-over'); });
+          card.on('drop', function (ev) {
+            ev.preventDefault();
+            $(this).removeClass('drag-over');
+            var src = ev.originalEvent.dataTransfer.getData('pb-src');
+            var nombre = ev.originalEvent.dataTransfer.getData('pb-nombre');
+            if (!src) return;
+            ejecutarEnHost(this, src, nombre);
+          });
+          $grid.append(card);
+          anime({ targets: card[0], scale: [0, 1], opacity: [0, 1], duration: 600, delay: i * 80, easing: 'easeOutElastic(1,.8)' });
+        });
+      };
+
+      // --- Scanner ---
+      var scannerCreado = false;
+      window.addScanner = function () {
+        if (scannerCreado) return;
+        scannerCreado = true;
+        var nid = editor.addNode('scanner', 0, 0, 80, 60, 'node-scanner', {},
+          '<div class="title-box"><i class="fas fa-satellite-dish"></i> Escaner de Red</div>'
+          + '<div class="box">'
+          + '<small>Rango CIDR</small>'
+          + '<input type="text" class="node-input subnet-input" value="192.168.1.0/24">'
+          + '<button class="btn btn-block btn-outline-light btn-sm mt-2" onclick="doScan(this)">'
+          + '<i class="fas fa-search"></i> Escanear</button>'
+          + '<div class="mt-2"><small class="text-muted st">Listo.</small></div>'
+          + '</div>', false);
+        anime({ targets: '#node-' + nid, scale: [0, 1], opacity: [0, 1], duration: 800, easing: 'easeOutElastic(1,.8)' });
+      };
+
+      window.doScan = function (btn) {
+        var $b = $(btn), $box = $b.closest('.box'), $st = $box.find('.st');
+        var subnet = $box.find('.subnet-input').val();
+        var orig = $b.html();
+        $b.html('<i class="fas fa-spinner fa-spin"></i> Escaneando...').prop('disabled', true);
+        $st.html('Analizando red...');
+
+        $.get('/api/scan?subnet=' + encodeURIComponent(subnet), function (r) {
+          if (r.equipos && r.equipos.length > 0) {
+            $st.html('<span class="text-success">' + r.equipos.length + ' hosts encontrados</span>');
+            renderHosts(r.equipos);
+          } else {
+            $st.html('<span class="text-danger">No se encontro nada.</span>');
+            renderHosts([]);
+          }
+        }).fail(function () {
+          $st.text('No se ha podido conectar con el backend.');
+        }).always(function () {
+          $b.html(orig).prop('disabled', false);
+        });
+      };
+
+      // inicializar scanner
+      addScanner();
+    }
+  </script>
 </body>
+
 </html>

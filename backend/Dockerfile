@@ -12,17 +12,11 @@ WORKDIR /opt/ansible-visual/api
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# instalamos ansible y la coleccion de modulos necesarios 
-# ansible.windows para los win
-# chocolatey.chocolatey 
-# community.general para el modulo ufw del firewal
-# community.windows para win_firewall_rule
-RUN pip install --no-cache-dir ansible-core passlib && \
+RUN pip install --no-cache-dir ansible-core && \
     ansible-galaxy collection install --force -p /usr/share/ansible/collections ansible.windows && \
     ansible-galaxy collection install --force -p /usr/share/ansible/collections chocolatey.chocolatey && \
     ansible-galaxy collection install --force -p /usr/share/ansible/collections community.general && \
     ansible-galaxy collection install --force -p /usr/share/ansible/collections community.windows
-
 
 # pip mete los binarios en /usr/local/bin/ pero en main.py los
 # llamamos con /usr/bin/, asi que creamos enlaces simbolicos
