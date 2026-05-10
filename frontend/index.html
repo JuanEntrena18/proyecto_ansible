@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.theme.css">
   <style>
     /* zona principal: canvas arriba, panel de hosts abajo */
-    .content-area { display:flex; flex-direction:column; height:calc(100vh - 57px); }
+    .content-area { display:flex; flex-direction:column; height:calc(100vh - 114px); }
     #drawflow { width:100%; height:280px; min-height:200px; background:#2b2b2b; background-image:radial-gradient(#444 1px,transparent 1px); background-size:25px 25px; position:relative; overflow:hidden; outline:none; }
     .drawflow .drawflow-node { background:#1e1e1e; border:1px solid #444; color:white; width:260px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.5); padding:0; }
     .drawflow .drawflow-node .title-box { padding:8px 12px; border-radius:8px 8px 0 0; font-weight:bold; display:flex; align-items:center; gap:8px; color:white; }
@@ -46,10 +46,25 @@
     .pb-item .pb-icon.ic-system { background:#6f42c1; }
     .pb-item .pb-label { flex:1; line-height:1.3; }
     .pb-item .pb-os { font-size:11px; opacity:0.6; display:block; }
-    .cred-section { padding:8px 12px; }
-    .cred-section label { font-size:11px; color:#aaa; margin-bottom:2px; display:block; }
-    .cred-section input { background:#333; border:1px solid #555; color:#fff; width:100%; padding:4px 6px; border-radius:4px; margin-bottom:6px; font-size:12px; }
+    /* Ocultar secciones custom al colapsar el sidebar de AdminLTE */
+    body.sidebar-collapse .cred-section,
+    body.sidebar-collapse .nav-header { display: none !important; }
+    body.sidebar-collapse .pb-item .pb-label,
+    body.sidebar-collapse .pb-item .pb-os { display: none !important; }
+    body.sidebar-collapse .pb-item { justify-content: center; padding: 10px; margin: 4px; }
+    body.sidebar-collapse .pb-item .pb-icon { margin: 0; }
+
     @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+    /* Footer plano, posicionado sobre la sombra de la barra lateral para ocultarla en esa zona */
+    .main-footer { 
+      background-color: #343a40 !important; 
+      border-top: none !important; 
+      color: #888 !important; 
+      box-shadow: 0 -20px 0 0 #343a40 !important; /* Rellena cualquier hueco hacia arriba con color plano */
+      position: relative; 
+      z-index: 1040; /* Mayor que elevation-4 para que la sombra no le caiga encima */
+    }
   </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed dark-mode">
@@ -59,6 +74,13 @@
       <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a></li>
       <li class="nav-item d-none d-sm-inline-block"><span class="nav-link font-weight-bold">Visual/\nsible</span></li>
     </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link text-warning" href="#" data-toggle="modal" data-target="#modalCredenciales">
+          <i class="fas fa-key"></i> Credenciales
+        </a>
+      </li>
+    </ul>
   </nav>
 
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -66,18 +88,6 @@
     <div class="sidebar"><nav class="mt-2"><ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
       <li class="nav-header">RED</li>
       <li class="nav-item"><a href="#" class="nav-link" onclick="addScanner()"><i class="nav-icon fas fa-satellite-dish text-purple"></i><p>Scanner Red</p></a></li>
-
-      <li class="nav-header">CREDENCIALES LINUX (SSH)</li>
-      <li class="nav-item"><div class="cred-section">
-        <label>Usuario</label><input type="text" id="linuxUser" placeholder="usuario">
-        <label>Contraseña</label><input type="password" id="linuxPass" placeholder="contraseña">
-      </div></li>
-
-      <li class="nav-header">CREDENCIALES WINDOWS (WinRM)</li>
-      <li class="nav-item"><div class="cred-section">
-        <label>Usuario</label><input type="text" id="winUser" placeholder="usuario">
-        <label>Contraseña</label><input type="password" id="winPass" placeholder="contraseña">
-      </div></li>
 
       <li class="nav-header">PLAYBOOKS</li>
       <li id="pbList"><small class="text-muted px-3">Cargando...</small></li>
@@ -94,6 +104,10 @@
       </div>
     </div>
   </div>
+  
+  <footer class="main-footer text-center text-sm">
+    <strong>Proyecto Visual/\nsible</strong> - Creadores: Marina Jiménez Egea, Félix David Romero López, Daniel Palacios Melguizo, Diego Toribio Perea, Juan Fco. Entrena Garrido
+  </footer>
 </div>
 
 <!-- ventana modal donde sale la salida del playbook en tiempo real -->
@@ -106,6 +120,52 @@
   <div class="modal-body"><div id="rOut" class="output-terminal">Esperando...</div></div>
   <div class="modal-footer border-secondary"><button class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
 </div></div></div>
+
+<!-- modal de credenciales -->
+<div class="modal fade" id="modalCredenciales" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title"><i class="fas fa-shield-alt text-warning"></i> Gestión de Credenciales</h5>
+        <button class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-4">
+          <h6 class="text-success"><i class="fab fa-linux"></i> Linux (SSH)</h6>
+          <div class="input-group input-group-sm mb-2">
+            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-user"></i></span></div>
+            <input type="text" id="linuxUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario">
+          </div>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-key"></i></span></div>
+            <input type="password" id="linuxPass" class="form-control bg-dark border-secondary text-white" placeholder="Contraseña">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h6 class="text-info"><i class="fab fa-windows"></i> Windows (WinRM)</h6>
+          <div class="input-group input-group-sm mb-2">
+            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-user"></i></span></div>
+            <input type="text" id="winUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario">
+          </div>
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary"><i class="fas fa-key"></i></span></div>
+            <input type="password" id="winPass" class="form-control bg-dark border-secondary text-white" placeholder="Contraseña">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary toggle-pwd" type="button" onclick="togglePass(this)"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -122,12 +182,31 @@
   // lista de hosts descubiertos (se llena tras escanear)
   var hostsData = [];
 
+  // función para mostrar/ocultar contraseña
+  function togglePass(btn) {
+    var $input = $(btn).closest('.input-group').find('input');
+    var type = $input.attr('type') === 'password' ? 'text' : 'password';
+    $input.attr('type', type);
+    $(btn).find('i').toggleClass('fa-eye fa-eye-slash');
+  }
+
+  // cargar credenciales de localStorage primero
+  $('#linuxUser').val(localStorage.getItem('linuxUser') || '');
+  $('#linuxPass').val(localStorage.getItem('linuxPass') || '');
+  $('#winUser').val(localStorage.getItem('winUser') || '');
+  $('#winPass').val(localStorage.getItem('winPass') || '');
+
   // si hay credenciales guardadas en el json, las rellenamos
   $.get('/api/credentials', function(r) {
     if (r.linux_user) $('#linuxUser').val(r.linux_user);
     if (r.linux_pass) $('#linuxPass').val(r.linux_pass);
     if (r.win_user)   $('#winUser').val(r.win_user);
     if (r.win_pass)   $('#winPass').val(r.win_pass);
+  });
+
+  // guardar credenciales introducidas en localStorage para persistencia
+  $('#linuxUser, #linuxPass, #winUser, #winPass').on('input change', function() {
+    localStorage.setItem(this.id, this.value);
   });
 
   // pedimos la lista de playbooks al backend y los metemos en el sidebar
