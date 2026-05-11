@@ -4,5 +4,5 @@ gunicorn
 pyyaml
 pywinrm
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 cryptography

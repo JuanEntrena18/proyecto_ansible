@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from cryptography.fernet import Fernet
 import subprocess, re, os, yaml, tempfile, json, secrets
 
@@ -33,14 +33,16 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 security = HTTPBearer(auto_error=False)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 
 USERS = {
-    "admin":    {"password": None, "rol": "admin"},
-    "operador": {"password": None, "rol": "operador"},
+    "admin":    {"password": hash_password("admin"), "rol": "admin"},
+    "operador": {"password": hash_password("operador"), "rol": "operador"},
 }
-for u in USERS:
-    USERS[u]["password"] = pwd_context.hash(u)
 
 # --- Cifrado de credentials.json ---
 fernet = None
@@ -87,9 +89,6 @@ def save_creds(data):
         f.write(text)
 
 # --- Funciones de autenticacion ---
-
-def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
