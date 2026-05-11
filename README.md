@@ -1,6 +1,6 @@
 # Visual/\nsible - Gestion de Aulas con Ansible
 
-Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible en aulas informaticas. Escanea la red, detecta equipos Windows y Linux, y permite ejecutar tareas de automatizacion con un simple arrastrar y soltar.
+Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible en aulas informáticas. Escanea la red, detecta equipos Windows y Linux, y permite ejecutar tareas de automatización con un simple arrastrar y soltar.
 
 ## Stack Tecnológico
 
@@ -9,13 +9,14 @@ Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible e
 | Frontend | HTML5 + jQuery + AdminLTE 3 + Drawflow |
 | Backend | Python 3.12 + FastAPI + Uvicorn/Gunicorn |
 | Proxy | Nginx (con HTTPS y headers de seguridad) |
-| Automatizacion | Ansible Core + WinRM + SSH |
+| Automatización | Ansible Core + WinRM + SSH |
 | Escaneo | Nmap |
 | Contenedores | Docker + Docker Compose |
 | Seguridad | JWT + bcrypt + Fernet + HTTPS |
 
 ## Arquitectura
 
+```mermaid
 graph TD
     User([Navegador]) -- "HTTPS (:443)" --> Nginx{Nginx}
 
@@ -39,25 +40,26 @@ graph TD
     style Nginx fill:#f9f,stroke:#333,stroke-width:2px
     style Backend fill:#bbf,stroke:#333,stroke-width:2px
     style User fill:#fff,stroke:#333
+```
 
 ## Funcionalidades
 
-- **Escaneo de red**: Deteccion automatica de equipos Windows y Linux via Nmap
-- **Playbooks predefinidos**: 10 plantillas listas para usar (instalacion de software, firewall, usuarios, Docker, XAMPP, etc.)
-- **Ejecucion drag and drop**: Arrastra un playbook sobre un host y se ejecuta al instante
+- **Escaneo de red**: Deteccion automática de equipos Windows y Linux via Nmap
+- **Playbooks predefinidos**: 10 plantillas listas para usar (instalación de software, firewall, usuarios, Docker, XAMPP, etc.)
+- **Ejecución drag and drop**: Arrastra un playbook sobre un host y se ejecuta al instante
 - **Streaming en tiempo real**: La salida de Ansible se muestra en el navegador mientras se ejecuta
 - **Playbooks personalizados**: Crea y guarda tus propios playbooks desde la interfaz
 - **Multiplataforma**: Soporta hosts Windows (WinRM) y Linux (SSH) simultaneamente
-- **Logs de auditoria**: Historial completo de todas las ejecuciones
+- **Logs de auditoría**: Historial completo de todas las ejecuciones
 
 ## Seguridad
 
-- **Autenticacion JWT**: Dos roles: `admin` (control total) y `operador` (solo lectura)
+- **Autenticación JWT**: Dos roles: `admin` (control total) y `operador` (solo lectura)
 - **HTTPS obligatorio**: Puerto 80 redirige a 443 con certificado SSL
 - **Credenciales cifradas**: `credentials.json` se cifra en disco con Fernet
 - **Headers de seguridad**: HSTS, CSP, X-Frame-Options, X-Content-Type-Options
 - **Contrasenas nunca en cliente**: Las contrasenas de los hosts viajan solo del frontend al backend, nunca al reves
-- **Validacion de entrada**: Regex en IPs, rutas, nombres de archivo y usuarios
+- **Validación de entrada**: Regex en IPs, rutas, nombres de archivo y usuarios
 - **Tokens efimeros**: JWT con expiracion de 24 horas
 
 ## Despliegue Rapido (Docker)
