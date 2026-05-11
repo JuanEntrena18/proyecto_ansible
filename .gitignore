@@ -3,3 +3,8 @@
 .vault_pass
 ansible.log
 nodes/
+# No subir los backups comprimidos (pesados y sensibles)
+backups/*.tar.gz
+# No subir credenciales reales
+config/credentials.json
+config/ssl/*
