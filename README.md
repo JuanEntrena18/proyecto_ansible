@@ -1,107 +1,155 @@
-# Visual /\nsible Project
+# Visual/\nsible - Gestion de Aulas con Ansible
 
-Objetivo: Crear una interfaz visual basada en nodos para generar y ejecutar playbooks de Ansible, simplificando la infraestructura como código (IaC).
+Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible en aulas informaticas. Escanea la red, detecta equipos Windows y Linux, y permite ejecutar tareas de automatizacion con un simple arrastrar y soltar.
 
-## 👥 Equipo y Colaboradores
+## Stack Tecnológico
 
-¡Las personas que hacen posible este proyecto!
+| Capa | Tecnologia |
+|------|-----------|
+| Frontend | HTML5 + jQuery + AdminLTE 3 + Drawflow |
+| Backend | Python 3.12 + FastAPI + Uvicorn/Gunicorn |
+| Proxy | Nginx (con HTTPS y headers de seguridad) |
+| Automatizacion | Ansible Core + WinRM + SSH |
+| Escaneo | Nmap |
+| Contenedores | Docker + Docker Compose |
+| Seguridad | JWT + bcrypt + Fernet + HTTPS |
 
-| Nombre | GitHub |
-| :--- | :--- |
-| **Juan Fco. Entrena Garrido** | [@JuanEntrena18] |
-| **Diego Toribio Perea** | [@DIEGO1ASIRC] |
-| **Daniel Palacios Melguizo** | [@dpalmel1312] |
-| **Marina Jiménez Egea** | [@Marjieg] |
-| **Félix David Romero López** | [@felixdavid28] |
+## Arquitectura
 
-## 1. Infraestructura y Arquitectura Base
-
-### Stack Tecnológico
-- **OS**: Ubuntu Server 24.04 LTS
-- **Web Server / Proxy**: Nginx
-- **Backend API**: Python (FastAPI + Uvicorn/Gunicorn)
-- **Procesos y Servicios**: Systemd
-- **Motor IaC**: Ansible Core
-- **Escaneo de Red**: Nmap
-- **Frontend**: HTML/JS (Archivos estáticos servidos por Nginx)
-
-### Arquitectura del Sistema
-
-La arquitectura está diseñada para tener Nginx como punto de entrada único (Reverse Proxy). Esto nos permite servir la aplicación web estática y redirigir el tráfico de la API al backend en Python, evitando problemas de CORS y mejorando la seguridad general.
-
-```mermaid
 graph TD
-    User(Usuario - Navegador web) -- HTTP:80 --> Nginx[Nginx Reverse Proxy]
-    
-    subgraph Ubuntu 24.04 LTS Server
-        Nginx -- / --> Frontend[Frontend Archivos Estáticos\n/var/www/ansible-visual/html]
-        Nginx -- /api/ --> BackendAPI[Backend FastAPI\n127.0.0.1:8000]
-        
-        subgraph Backend Systemd Service
-            BackendAPI --> Nmap[Escaner Nmap]
-            BackendAPI --> Ansible[Ansible Core]
-            Ansible -- WinRM --> Windows(Windows Hosts)
-            Ansible -- SSH --> Linux(Linux Hosts)
+    User([Navegador]) -- "HTTPS (:443)" --> Nginx{Nginx}
+
+    subgraph "Servidor Ubuntu"
+        Nginx --> Frontend["<b>Frontend (estático)</b><br/>/var/www/.../html"]
+        Nginx -- "Proxy Pass" --> Backend["<b>Backend API (:8000)</b><br/>FastAPI + Gunicorn"]
+
+        subgraph "Core Engine"
+            Backend --> Nmap["<b>Nmap</b><br/>(Network Scan)"]
+            Backend --> Ansible["<b>Ansible</b><br/>(Automation)"]
+            Backend --> Logs[("<b>Logs</b><br/>(History)")]
         end
     end
+
+    subgraph "Infraestructura"
+        Ansible -- "SSH (:22)" --> Linux["Hosts Linux"]
+        Ansible -- "WinRM (:5985)" --> Windows["Hosts Windows"]
+    end
+
+    %% Estilos
+    style Nginx fill:#f9f,stroke:#333,stroke-width:2px
+    style Backend fill:#bbf,stroke:#333,stroke-width:2px
+    style User fill:#fff,stroke:#333
+
+## Funcionalidades
+
+- **Escaneo de red**: Deteccion automatica de equipos Windows y Linux via Nmap
+- **Playbooks predefinidos**: 10 plantillas listas para usar (instalacion de software, firewall, usuarios, Docker, XAMPP, etc.)
+- **Ejecucion drag and drop**: Arrastra un playbook sobre un host y se ejecuta al instante
+- **Streaming en tiempo real**: La salida de Ansible se muestra en el navegador mientras se ejecuta
+- **Playbooks personalizados**: Crea y guarda tus propios playbooks desde la interfaz
+- **Multiplataforma**: Soporta hosts Windows (WinRM) y Linux (SSH) simultaneamente
+- **Logs de auditoria**: Historial completo de todas las ejecuciones
+
+## Seguridad
+
+- **Autenticacion JWT**: Dos roles: `admin` (control total) y `operador` (solo lectura)
+- **HTTPS obligatorio**: Puerto 80 redirige a 443 con certificado SSL
+- **Credenciales cifradas**: `credentials.json` se cifra en disco con Fernet
+- **Headers de seguridad**: HSTS, CSP, X-Frame-Options, X-Content-Type-Options
+- **Contrasenas nunca en cliente**: Las contrasenas de los hosts viajan solo del frontend al backend, nunca al reves
+- **Validacion de entrada**: Regex en IPs, rutas, nombres de archivo y usuarios
+- **Tokens efimeros**: JWT con expiracion de 24 horas
+
+## Despliegue Rapido (Docker)
+
+```bash
+# Clonar repositorio
+git clone https://github.com/JuanEntrena18/proyecto_ansible
+cd proyecto_ansible/github
+
+# Generar clave de cifrado para credenciales
+export CREDENTIALS_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+
+# Construir y arrancar
+sudo docker compose up -d --build
 ```
 
-### Detalles de Configuración
-Las rutas principales dentro del servidor donde se despliega el proyecto son:
-- **Backend API**: `/opt/ansible-visual/api` (entorno virtual de Python `venv` aislado)
-- **Frontend**: `/var/www/ansible-visual/html`
-- **Motor Ansible**: `/opt/ansible-visual/ansible` (Playbooks, inventarios y logs)
-- **Credenciales y Configuración**: `/opt/ansible-visual/credentials.json`
+Accede a `https://<IP-del-servidor>` con usuario `admin` y contrasena `admin`.
 
-## 2. Configuración del proxy inverso Nginx
+## API REST
 
-Nginx actúa como el servidor web y proxy inverso principal. Su labor fundamental es recibir peticiones por el puerto 80 y decidir su destino:
-- Las peticiones a la ruta raíz (`/`) sirven la interfaz frontend.
-- Las peticiones a `/api/` se reenvían al servicio interno de FastAPI en el puerto `8000`.
+| Metodo | Endpoint | Auth | Descripcion |
+|--------|----------|------|-------------|
+| POST | `/login` | - | Inicio de sesion (devuelve JWT) |
+| GET | `/me` | JWT | Informacion del usuario |
+| GET | `/scan?subnet=X.X.X.X/XX` | JWT | Escanea una subred con Nmap |
+| GET | `/playbooks` | JWT | Lista los playbooks disponibles |
+| GET | `/playbooks/{tipo}/{nombre}` | JWT | Lee el contenido de un playbook |
+| POST | `/playbooks` | Admin | Guarda un playbook personalizado |
+| POST | `/execute` | Admin | Ejecuta un playbook en uno o varios hosts |
+| GET | `/credentials` | Admin | Obtiene los usuarios configurados |
+| POST | `/credentials` | Admin | Guarda credenciales de acceso a hosts |
+| GET | `/logs` | Admin | Historial de ejecuciones |
 
-**Configuración clave destacada:**
-Para que la salida de las ejecuciones de Ansible se muestre en tiempo real en la interfaz (mediante `StreamingResponse`), Nginx requiere desactivar el buffering del proxy.
-```nginx
-location /api/ {
-    proxy_pass http://127.0.0.1:8000/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    
-    # Fundamental: desactiva el buffering para poder transmitir
-    # el log de Ansible en streaming al navegador en tiempo real.
-    proxy_buffering off; 
-}
+## Playbooks Disponibles
+
+| Playbook | SO | Descripcion |
+|----------|----|-------------|
+| `instalar_software` | Linux + Windows | Instala paquetes desde group_vars |
+| `instalar_docker` | Linux | Instala Docker CE |
+| `instalar_xampp` | Linux + Windows | Instala XAMPP / LAMP |
+| `instalar_libreoffice` | Linux + Windows | Instala LibreOffice |
+| `crear_usuario` | Linux + Windows | Crea usuario `alumno` |
+| `configurar_acceso` | Linux + Windows | Configura SSH y WinRM |
+| `configurar_firewall` | Linux + Windows | Abre puertos en firewall |
+| `actualizar_sistema` | Linux + Windows | Actualiza paquetes del sistema |
+| `renombrar_equipos` | Linux + Windows | Renombra equipos segun IP |
+| `desinstalar_todo` | Linux + Windows | Desinstala todo el software instalado |
+
+## Estructura del Proyecto
+
+```
+github/
++-- backend/
+|   +-- main.py              # API FastAPI (JWT + cifrado)
+|   +-- requirements.txt     # Dependencias Python
+|   +-- Dockerfile           # Imagen del backend
++-- frontend/
+|   +-- index.html           # Interfaz de usuario
++-- config/
+|   +-- nginx.conf           # Proxy HTTPS con seguridad
+|   +-- ssl/                 # Certificados SSL
+|   +-- credentials.json     # Credenciales cifradas
++-- ansible/
+|   +-- ansible.cfg          # Configuracion de Ansible
+|   +-- inventory/           # Inventarios y group_vars
+|   +-- playbooks/
+|   |   +-- templates/       # Playbooks predefinidos
+|   |   +-- custom/          # Playbooks del usuario
+|   +-- roles/               # Roles de Ansible
+|   +-- logs/                # Historial de ejecuciones
++-- scripts/
+|   +-- backup.sh            # Backup automatico diario
++-- docker-compose.yml       # Orquestacion de contenedores
++-- README.md
 ```
 
-## 3. Servicio Systemd (Backend Daemon)
+## Variables de Entorno
 
-El backend en FastAPI se ejecuta en segundo plano como un daemon gestionado por Systemd. Esto asegura que la API se inicie automáticamente con el sistema operativo y se reinicie en caso de fallo, aportando robustez.
+| Variable | Descripcion | Obligatoria |
+|----------|-------------|-------------|
+| `CREDENTIALS_KEY` | Clave Fernet para cifrar credentials.json | Recomendada (se autogenera si no existe) |
 
-- **Ruta del servicio**: `/etc/systemd/system/ansible-api.service`
-- **Gestión**: `systemctl start ansible-api` / `systemctl enable ansible-api`
-- El servicio encapsula el entorno virtual y lanza los workers (Uvicorn/Gunicorn) aislando las variables de entorno necesarias como `ANSIBLE_CONFIG` o `ANSIBLE_ROLES_PATH`.
+## Despliegue Tradicional (sin Docker)
 
-## 4. Estado Actual
+Consulta la [Guia de Despliegue](Guia_despliegue_0_5.ipynb) para instalacion en Ubuntu Server 22.04/24.04 sin Docker.
 
-- [x] Servidor base Ubuntu 24.04 configurado y securizado.
-- [x] Motor de Ansible y dependencias instaladas.
-- [x] API backend (FastAPI) plenamente funcional.
-- [x] Escaneo dinámico de subredes integrado a través de `nmap` para la detección inteligente de hosts (Windows/Linux).
-- [x] Ejecución y streaming de Playbooks desde el navegador en tiempo real con inventarios generados al vuelo.
-- [x] Proxy Nginx configurado y activo.
-- [x] Demonización del servicio API configurada mediante Systemd.
-- [x] Compatibilidad con nodos Windows mediante protocolo WinRM y nodos Linux por SSH.
-- [x] Contenerización Total: Transición del despliegue "Bare Metal" a un entorno Dockerizado robusto
+## Equipo
 
-## 5. Futuros Pasos
-
-- **Desarrollo Visual (Drawflow/React Flow)**: Implementación integral de la interfaz basada en nodos para crear workflows arrastrando componentes visuales.
-- **Mapeo de Módulos**: Creación del diccionario/traductor que convierte las configuraciones del diagrama de nodos visual a formato estándar YAML de Ansible.
-- **Orquestación Asíncrona Avanzada**: Posibilidad de programar ejecuciones concurrentes o diferidas con un motor de colas.
-- **Backend**: añadir nuevas dependencias (jose, passlib, multipart, cryptography)
-- **Backend**: Implementar login, JWT, dependencias de autentificación, cifrado de credentials.json en main.py
-- **Backend**: actualizar dockerfile con las nuevas dependencias
-- **Frontend**: añadir login modal, interceptor de JWT, UI condicional por rol en index.html
-- **Nginx**: configurar https + redirección + headers de seguridad
-- **Docker Compose**: montar certificados SSL, añadir variable DREDENTIALS_KEY
-- **Certificado SSL**: autofirmado para desarrollo
+| Nombre | Rol | GitHub |
+|--------|-----|--------|
+| Juan Fco. Entrena Garrido | Desarrollo | [@JuanEntrena18](https://github.com/JuanEntrena18) |
+| Diego Toribio Perea | Desarrollo | [@DIEGO1ASIRC](https://github.com/DIEGO1ASIRC) |
+| Daniel Palacios Melguizo | Desarrollo | [@dpalmel1312](https://github.com/dpalmel1312) |
+| Marina Jimenez Egea | Desarrollo | [@Marjieg](https://github.com/Marjieg) |
+| Felix David Romero Lopez | Desarrollo | [@felixdavid28](https://github.com/felixdavid28) |
