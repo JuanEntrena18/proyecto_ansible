@@ -286,11 +286,6 @@
       </ul>
       <ul class="navbar-nav ml-auto">
         <li class="nav-item admin-only">
-          <a class="nav-link text-info" href="#" onclick="cargarLogs()">
-            <i class="fas fa-history"></i> Historial
-          </a>
-        </li>
-        <li class="nav-item admin-only">
           <a class="nav-link text-warning" href="#" data-toggle="modal" data-target="#modalCredenciales">
             <i class="fas fa-key"></i> Credenciales
           </a>
@@ -369,25 +364,6 @@
             <i class="fas fa-sign-in-alt"></i> Entrar
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- modal de historial de ejecuciones -->
-  <div class="modal fade" id="modalLogs" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content bg-dark">
-        <div class="modal-header border-secondary">
-          <h5 class="modal-title"><i class="fas fa-history text-info"></i> Historial de ejecuciones</h5>
-          <button class="close text-white" data-dismiss="modal">&times;</button>
-        </div>
-        <div class="modal-body" style="max-height:500px; overflow-y:auto;">
-          <table class="table table-sm table-dark table-striped" style="font-size:13px;">
-            <thead><tr><th>Fecha</th><th>Playbook</th><th>Hosts</th><th>Usuario</th><th>Resultado</th></tr></thead>
-            <tbody id="logsBody"><tr><td colspan="5" class="text-center text-muted">Cargando...</td></tr></tbody>
-          </table>
-        </div>
-        <div class="modal-footer border-secondary"><button class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
       </div>
     </div>
   </div>
@@ -894,31 +870,6 @@
 
       // inicializar scanner
       addScanner();
-
-      // --- cargarLogs ---
-      window.cargarLogs = function () {
-        $('#logsBody').html('<tr><td colspan="5" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>');
-        $('#modalLogs').modal('show');
-        $.get('/api/logs?limit=50', function (r) {
-          var logs = (r.logs || []).reverse();
-          if (logs.length === 0) {
-            $('#logsBody').html('<tr><td colspan="5" class="text-center text-muted">No hay ejecuciones registradas</td></tr>');
-            return;
-          }
-          var html = '';
-          logs.forEach(function (l) {
-            var fecha = l.timestamp ? l.timestamp.replace('T', ' ').substring(0, 19) : '-';
-            var badge = (l.resultado && l.resultado.indexOf('OK') >= 0)
-              ? '<span class="badge badge-success">OK</span>'
-              : '<span class="badge badge-danger">' + (l.resultado || '?') + '</span>';
-            html += '<tr><td>' + fecha + '</td><td>' + (l.playbook || '-') + '</td><td>'
-              + (l.hosts || []).join(', ') + '</td><td>' + (l.usuario || '-') + '</td><td>' + badge + '</td></tr>';
-          });
-          $('#logsBody').html(html);
-        }).fail(function () {
-          $('#logsBody').html('<tr><td colspan="5" class="text-center text-danger">Error al cargar el historial</td></tr>');
-        });
-      };
     }
   </script>
 </body>
