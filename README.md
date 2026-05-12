@@ -151,7 +151,7 @@ Consulta la [Guia de Despliegue](Guia_despliegue_0_5.ipynb) para instalacion en 
 | Nombre | Rol | GitHub |
 |--------|-----|--------|
 | Juan Fco. Entrena Garrido | Desarrollo | [@JuanEntrena18](https://github.com/JuanEntrena18) |
-| Diego Toribio Perea | Desarrollo | [@DIEGO1ASIRC](https://github.com/DIEGO1ASIRC) |
+| Diego Toribio Perea | Desarrollo | [@DiegoToribio06](https://github.com/DiegoToribio06) |
 | Daniel Palacios Melguizo | Desarrollo | [@dpalmel1312](https://github.com/dpalmel1312) |
 | Marina Jimenez Egea | Desarrollo | [@Marjieg](https://github.com/Marjieg) |
 | Felix David Romero Lopez | Desarrollo | [@felixdavid28](https://github.com/felixdavid28) |
