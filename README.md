@@ -4,7 +4,7 @@ Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible e
 
 ## Stack Tecnológico
 
-| Capa | Tecnologia |
+| Capa | Tecnología |
 |------|-----------|
 | Frontend | HTML5 + jQuery + AdminLTE 3 + Drawflow |
 | Backend | Python 3.12 + FastAPI + Uvicorn/Gunicorn |
@@ -41,6 +41,7 @@ graph TD
     style Backend fill:#bbf,stroke:#333,stroke-width:2px
     style User fill:#fff,stroke:#333
 ```
+
 
 ## Funcionalidades
 
