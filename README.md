@@ -63,7 +63,7 @@ graph TD
 - **Validación de entrada**: Regex en IPs, rutas, nombres de archivo y usuarios
 - **Tokens efímeros**: JWT con expiración de 24 horas
 
-## Despliegue Rapido (Docker)
+## Despliegue Rápido (Docker)
 
 ```bash
 # Clonar repositorio
