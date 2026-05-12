@@ -1,4 +1,4 @@
-# Visual/\nsible - Gestion de Aulas con Ansible
+# Visual/\nsible - Gestión de Aulas con Ansible
 
 Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible en aulas informáticas. Escanea la red, detecta equipos Windows y Linux, y permite ejecutar tareas de automatización con un simple arrastrar y soltar.
 
@@ -44,7 +44,7 @@ graph TD
 
 ## Funcionalidades
 
-- **Escaneo de red**: Deteccion automática de equipos Windows y Linux via Nmap
+- **Escaneo de red**: Detección automática de equipos Windows y Linux via Nmap
 - **Playbooks predefinidos**: 10 plantillas listas para usar (instalación de software, firewall, usuarios, Docker, XAMPP, etc.)
 - **Ejecución drag and drop**: Arrastra un playbook sobre un host y se ejecuta al instante
 - **Streaming en tiempo real**: La salida de Ansible se muestra en el navegador mientras se ejecuta
@@ -58,9 +58,9 @@ graph TD
 - **HTTPS obligatorio**: Puerto 80 redirige a 443 con certificado SSL
 - **Credenciales cifradas**: `credentials.json` se cifra en disco con Fernet
 - **Headers de seguridad**: HSTS, CSP, X-Frame-Options, X-Content-Type-Options
-- **Contrasenas nunca en cliente**: Las contrasenas de los hosts viajan solo del frontend al backend, nunca al reves
+- **Contraseñas nunca en cliente**: Las contraseñas de los hosts viajan solo del frontend al backend, nunca al reves
 - **Validación de entrada**: Regex en IPs, rutas, nombres de archivo y usuarios
-- **Tokens efimeros**: JWT con expiracion de 24 horas
+- **Tokens efímeros**: JWT con expiración de 24 horas
 
 ## Despliegue Rapido (Docker)
 
@@ -76,14 +76,14 @@ export CREDENTIALS_KEY=$(python -c "from cryptography.fernet import Fernet; prin
 sudo docker compose up -d --build
 ```
 
-Accede a `https://<IP-del-servidor>` con usuario `admin` y contrasena `admin`.
+Accede a `https://<IP-del-servidor>` con usuario `admin` y contraseña `admin`.
 
 ## API REST
 
-| Metodo | Endpoint | Auth | Descripcion |
+| Metodo | Endpoint | Auth | Descripción |
 |--------|----------|------|-------------|
-| POST | `/login` | - | Inicio de sesion (devuelve JWT) |
-| GET | `/me` | JWT | Informacion del usuario |
+| POST | `/login` | - | Inicio de sesión (devuelve JWT) |
+| GET | `/me` | JWT | Información del usuario |
 | GET | `/scan?subnet=X.X.X.X/XX` | JWT | Escanea una subred con Nmap |
 | GET | `/playbooks` | JWT | Lista los playbooks disponibles |
 | GET | `/playbooks/{tipo}/{nombre}` | JWT | Lee el contenido de un playbook |
@@ -95,7 +95,7 @@ Accede a `https://<IP-del-servidor>` con usuario `admin` y contrasena `admin`.
 
 ## Playbooks Disponibles
 
-| Playbook | SO | Descripcion |
+| Playbook | SO | Descripción |
 |----------|----|-------------|
 | `instalar_software` | Linux + Windows | Instala paquetes desde group_vars |
 | `instalar_docker` | Linux | Instala Docker CE |
@@ -131,20 +131,20 @@ github/
 |   +-- roles/               # Roles de Ansible
 |   +-- logs/                # Historial de ejecuciones
 +-- scripts/
-|   +-- backup.sh            # Backup automatico diario
-+-- docker-compose.yml       # Orquestacion de contenedores
+|   +-- backup.sh            # Backup automático diario
++-- docker-compose.yml       # Orquestación de contenedores
 +-- README.md
 ```
 
 ## Variables de Entorno
 
-| Variable | Descripcion | Obligatoria |
+| Variable | Descripción | Obligatoria |
 |----------|-------------|-------------|
 | `CREDENTIALS_KEY` | Clave Fernet para cifrar credentials.json | Recomendada (se autogenera si no existe) |
 
 ## Despliegue Tradicional (sin Docker)
 
-Consulta la [Guia de Despliegue](Guia_despliegue_0_5.ipynb) para instalacion en Ubuntu Server 22.04/24.04 sin Docker.
+Consulta la [Guia de Despliegue](Guia_despliegue_0_5.ipynb) para instalación en Ubuntu Server 22.04/24.04 sin Docker.
 
 ## Equipo
 
