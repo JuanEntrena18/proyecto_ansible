@@ -19,7 +19,7 @@ Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible e
 ```mermaid
 flowchart TD
     %% Título General
-    Titulo["Arquitectura Completa del Sistema Visual/Ansible"]
+    Titulo["Arquitectura Completa del Sistema Visual/\nsible"]
 
     %% --------------------------------------------------------
     %% 1. CAPA PROXY
