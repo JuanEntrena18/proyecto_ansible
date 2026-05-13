@@ -41,7 +41,98 @@ graph TD
     style Backend fill:#bbf,stroke:#333,stroke-width:2px
     style User fill:#fff,stroke:#333
 ```
+```mermaid
+graph TD
+    %% Título General
+    title[Arquitectura General: Visual/Ansible]
 
+    %% Definición de Nodos Principales
+    Proxy[Capa Proxy]
+    Logica[Capa Lógica]
+    Continuidad[Capa de Continuidad]
+    Datos[Persistencia de Datos]
+
+    %% Flujos de Comunicación y Dependencia
+    Proxy -->|Tráfico Externo/Seguridad| Logica
+    Logica -->|Peticiones/Operaciones/Ansible/Nmap| Datos
+    Continuidad -->|Automatización de Backups| Datos
+    Continuidad -.->|Estado/Orquestación (Opcional)| Logica
+    
+    %% Relación Lógica Directa (Ejemplo: Logs o Config)
+    Logica -.->|Logs/Config Indirecta| Datos
+
+    %% Estilos de los Nodos (Opcionales, Mermaid aplica estilos básicos por defecto)
+    style Proxy fill:#f9f,stroke:#333,stroke-width:2px;
+    style Logica fill:#ccf,stroke:#333,stroke-width:2px;
+    style Continuidad fill:#ff9,stroke:#333,stroke-width:2px;
+    style Datos fill:#9f9,stroke:#333,stroke-width:2px;
+    style title fill:none,stroke:none,font-size:18px,font-weight:bold;
+```
+```mermaid
+graph TD
+    %% Título General
+    title[Estructura Detallada por Zonas]
+
+    %% Definición de Subgraphs (Zonas) y sus Nodos
+    subgraph ZonaProxy [Zona Proxy (Nginx)]
+        NginxService[Servicio Nginx]
+        RateLimiter[Límite de Tasa]
+        SSLTLS[SSL/TLS Cifrado]
+    end
+
+    subgraph ZonaLogica [Zona Lógica (FastAPI)]
+        BackendService[Servicio FastAPI/Backend]
+        NmapOrchestrator[Orquestador Nmap]
+        AnsibleRunner[Ejecutor Ansible]
+        CredentialsManager[Gestor Credenciales]
+    end
+
+    subgraph ZonaContinuidad [Zona de Continuidad (Backup)]
+        BackupContainer[Contenedor Alpine Backup]
+        BackupScript[script/backup.sh]
+        CronJob[Cron Automatizado]
+    end
+
+    subgraph ZonaDatos [Zona de Persistencia (Volúmenes)]
+        DataFolder[Carpeta Física Host: data/]
+        DbUsuarios[data/usuarios.db]
+        DbInventory[data/inventory.json]
+        FolderAnsible[Original Host: ansible/]
+        FolderConfig[Original Host: config/]
+    end
+
+    %% Conexiones entre Componentes y Zonas
+    NginxService -->|Filtrado/Enrutado| BackendService
+    NginxService --> RateLimiter
+    NginxService --> SSLTLS
+    
+    BackendService --> NmapOrchestrator
+    BackendService --> AnsibleRunner
+    BackendService --> CredentialsManager
+
+    %% Conexiones de Persistencia (Mapeo de Volúmenes Conceptualmente)
+    BackendService -->|Mapeo a: data/usuarios.db| DbUsuarios
+    BackendService -->|Mapeo a: data/inventory.json| DbInventory
+    BackendService -.->|Mapeo Indirectologs/playbooks| FolderAnsible
+    BackendService -.->|Mapeo Indirecto credentials.json| FolderConfig
+
+    DataFolder --- DbUsuarios
+    DataFolder --- DbInventory
+    
+    %% Conexiones de Continuidad con Datos
+    BackupContainer --> CronJob
+    CronJob -->|Ejecuta| BackupScript
+    BackupScript -->|Empaqueta y Limpia| DataFolder
+    BackupScript -.->|Copia Externa a NAS/Win (Opcional)| BackupScript
+
+    %% Estilos de los Nodos (Opcionales)
+    style NginxService fill:#f9f;
+    style BackendService fill:#ccf;
+    style BackupContainer fill:#ff9;
+    style DbUsuarios fill:#9f9;
+    style DbInventory fill:#9f9;
+    style title fill:none,stroke:none,font-size:18px,font-weight:bold;
+```
 
 ## Funcionalidades
 
