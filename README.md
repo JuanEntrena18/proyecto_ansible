@@ -68,41 +68,42 @@ graph TD
     style Datos fill:#9f9,stroke:#333,stroke-width:2px;
     style title fill:none,stroke:none,font-size:18px,font-weight:bold;
 ```
+
 ```mermaid
 graph TD
     %% Título General
-    title[Estructura Detallada por Zonas]
+    Titulo["Estructura Detallada por Zonas"]
 
-    %% Definición de Subgraphs (Zonas) y sus Nodos
-    subgraph ZonaProxy [Zona Proxy (Nginx)]
-        NginxService[Servicio Nginx]
-        RateLimiter[Límite de Tasa]
-        SSLTLS[SSL/TLS Cifrado]
+    %% Definición de Subgraphs (Zonas) y sus Nodos con comillas de seguridad
+    subgraph ZonaProxy ["Zona Proxy (Nginx)"]
+        NginxService["Servicio Nginx"]
+        RateLimiter["Límite de Tasa"]
+        SSLTLS["SSL/TLS Cifrado"]
     end
 
-    subgraph ZonaLogica [Zona Lógica (FastAPI)]
-        BackendService[Servicio FastAPI/Backend]
-        NmapOrchestrator[Orquestador Nmap]
-        AnsibleRunner[Ejecutor Ansible]
-        CredentialsManager[Gestor Credenciales]
+    subgraph ZonaLogica ["Zona Lógica (FastAPI)"]
+        BackendService["Servicio FastAPI / Backend"]
+        NmapOrchestrator["Orquestador Nmap"]
+        AnsibleRunner["Ejecutor Ansible"]
+        CredentialsManager["Gestor Credenciales"]
     end
 
-    subgraph ZonaContinuidad [Zona de Continuidad (Backup)]
-        BackupContainer[Contenedor Alpine Backup]
-        BackupScript[script/backup.sh]
-        CronJob[Cron Automatizado]
+    subgraph ZonaContinuidad ["Zona de Continuidad (Backup)"]
+        BackupContainer["Contenedor Alpine Backup"]
+        BackupScript["script/backup.sh"]
+        CronJob["Cron Automatizado"]
     end
 
-    subgraph ZonaDatos [Zona de Persistencia (Volúmenes)]
-        DataFolder[Carpeta Física Host: data/]
-        DbUsuarios[data/usuarios.db]
-        DbInventory[data/inventory.json]
-        FolderAnsible[Original Host: ansible/]
-        FolderConfig[Original Host: config/]
+    subgraph ZonaDatos ["Zona de Persistencia (Volúmenes)"]
+        DataFolder["Carpeta Física Host: data/"]
+        DbUsuarios["data/usuarios.db"]
+        DbInventory["data/inventory.json"]
+        FolderAnsible["Original Host: ansible/"]
+        FolderConfig["Original Host: config/"]
     end
 
     %% Conexiones entre Componentes y Zonas
-    NginxService -->|Filtrado/Enrutado| BackendService
+    NginxService -->|"Filtrado y Enrutado"| BackendService
     NginxService --> RateLimiter
     NginxService --> SSLTLS
     
@@ -110,28 +111,28 @@ graph TD
     BackendService --> AnsibleRunner
     BackendService --> CredentialsManager
 
-    %% Conexiones de Persistencia (Mapeo de Volúmenes Conceptualmente)
-    BackendService -->|Mapeo a: data/usuarios.db| DbUsuarios
-    BackendService -->|Mapeo a: data/inventory.json| DbInventory
-    BackendService -.->|Mapeo Indirectologs/playbooks| FolderAnsible
-    BackendService -.->|Mapeo Indirecto credentials.json| FolderConfig
+    %% Conexiones de Persistencia
+    BackendService -->|"Mapeo a: data/usuarios.db"| DbUsuarios
+    BackendService -->|"Mapeo a: data/inventory.json"| DbInventory
+    BackendService -.->|"Mapeo Indirecto: logs y playbooks"| FolderAnsible
+    BackendService -.->|"Mapeo Indirecto: credentials.json"| FolderConfig
 
     DataFolder --- DbUsuarios
     DataFolder --- DbInventory
     
     %% Conexiones de Continuidad con Datos
     BackupContainer --> CronJob
-    CronJob -->|Ejecuta| BackupScript
-    BackupScript -->|Empaqueta y Limpia| DataFolder
-    BackupScript -.->|Copia Externa a NAS/Win (Opcional)| BackupScript
+    CronJob -->|"Ejecuta"| BackupScript
+    BackupScript -->|"Empaqueta y Limpia"| DataFolder
+    BackupScript -.->|"Copia Externa SCP"| BackupScript
 
-    %% Estilos de los Nodos (Opcionales)
-    style NginxService fill:#f9f;
-    style BackendService fill:#ccf;
-    style BackupContainer fill:#ff9;
-    style DbUsuarios fill:#9f9;
-    style DbInventory fill:#9f9;
-    style title fill:none,stroke:none,font-size:18px,font-weight:bold;
+    %% Estilos de los Nodos
+    style NginxService fill:#f9f
+    style BackendService fill:#ccf
+    style BackupContainer fill:#ff9
+    style DbUsuarios fill:#9f9
+    style DbInventory fill:#9f9
+    style Titulo fill:none,stroke:none,font-size:18px,font-weight:bold
 ```
 
 ## Funcionalidades
