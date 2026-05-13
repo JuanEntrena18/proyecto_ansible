@@ -70,69 +70,71 @@ graph TD
 ```
 
 ```mermaid
-graph TD
+flowchart TD
     %% Título General
-    Titulo["Estructura Detallada por Zonas"]
+    Titulo["Arquitectura Completa del Sistema Visual/Ansible"]
 
-    %% Definición de Subgraphs (Zonas) y sus Nodos con comillas de seguridad
-    subgraph ZonaProxy ["Zona Proxy (Nginx)"]
-        NginxService["Servicio Nginx"]
-        RateLimiter["Límite de Tasa"]
-        SSLTLS["SSL/TLS Cifrado"]
+    %% --------------------------------------------------------
+    %% 1. CAPA PROXY
+    %% --------------------------------------------------------
+    subgraph CapaProxy ["1. CAPA PROXY (Puerta de Entrada)"]
+        direction TB
+        Nginx["Nginx (Reverse Proxy)"]
+        Seguridad["Escudo: Rate Limiting & SSL/TLS"]
+        
+        Nginx --- Seguridad
     end
 
-    subgraph ZonaLogica ["Zona Lógica (FastAPI)"]
-        BackendService["Servicio FastAPI / Backend"]
-        NmapOrchestrator["Orquestador Nmap"]
-        AnsibleRunner["Ejecutor Ansible"]
-        CredentialsManager["Gestor Credenciales"]
+    %% --------------------------------------------------------
+    %% 2. CAPA LÓGICA
+    %% --------------------------------------------------------
+    subgraph CapaLogica ["2. CAPA LÓGICA (Orquestación y API)"]
+        direction TB
+        Backend["Backend FastAPI (Privilegios NET_RAW)"]
+        Motores["Motores de Ejecución: Ansible + Nmap"]
+        Creds["Inyección de Clave Maestra (KeePass)"]
+        
+        Backend --- Motores
+        Backend --- Creds
     end
 
-    subgraph ZonaContinuidad ["Zona de Continuidad (Backup)"]
-        BackupContainer["Contenedor Alpine Backup"]
-        BackupScript["script/backup.sh"]
-        CronJob["Cron Automatizado"]
+    %% --------------------------------------------------------
+    %% 3. CAPA DE PERSISTENCIA
+    %% --------------------------------------------------------
+    subgraph CapaDatos ["3. CAPA DE PERSISTENCIA (Volúmenes Host)"]
+        direction TB
+        Carpetas["Directorios Físicos: /data, /config, /ansible"]
+        BasesDatos["Bases de Datos: usuarios.db e inventory.json"]
+        
+        Carpetas --- BasesDatos
     end
 
-    subgraph ZonaDatos ["Zona de Persistencia (Volúmenes)"]
-        DataFolder["Carpeta Física Host: data/"]
-        DbUsuarios["data/usuarios.db"]
-        DbInventory["data/inventory.json"]
-        FolderAnsible["Original Host: ansible/"]
-        FolderConfig["Original Host: config/"]
+    %% --------------------------------------------------------
+    %% 4. CAPA DE CONTINUIDAD
+    %% --------------------------------------------------------
+    subgraph CapaContinuidad ["4. CAPA DE CONTINUIDAD (Protección DRP)"]
+        direction TB
+        Alpine["Servicio Alpine (Aislado)"]
+        Scripts["Ejecución Cron: backup.sh + Exportación SCP"]
+        
+        Alpine --- Scripts
     end
 
-    %% Conexiones entre Componentes y Zonas
-    NginxService -->|"Filtrado y Enrutado"| BackendService
-    NginxService --> RateLimiter
-    NginxService --> SSLTLS
-    
-    BackendService --> NmapOrchestrator
-    BackendService --> AnsibleRunner
-    BackendService --> CredentialsManager
+    %% ========================================================
+    %% RELACIONES VERTICALES (Fuerzan el diseño de Arriba a Abajo)
+    %% ========================================================
+    CapaProxy == "Enruta peticiones seguras hacia la API" ==> CapaLogica
+    CapaLogica == "Actualiza inventarios y lee credenciales" ==> CapaDatos
+    CapaContinuidad -. "Comprime datos en modo Solo Lectura" .-> CapaDatos
 
-    %% Conexiones de Persistencia
-    BackendService -->|"Mapeo a: data/usuarios.db"| DbUsuarios
-    BackendService -->|"Mapeo a: data/inventory.json"| DbInventory
-    BackendService -.->|"Mapeo Indirecto: logs y playbooks"| FolderAnsible
-    BackendService -.->|"Mapeo Indirecto: credentials.json"| FolderConfig
-
-    DataFolder --- DbUsuarios
-    DataFolder --- DbInventory
-    
-    %% Conexiones de Continuidad con Datos
-    BackupContainer --> CronJob
-    CronJob -->|"Ejecuta"| BackupScript
-    BackupScript -->|"Empaqueta y Limpia"| DataFolder
-    BackupScript -.->|"Copia Externa SCP"| BackupScript
-
-    %% Estilos de los Nodos
-    style NginxService fill:#f9f
-    style BackendService fill:#ccf
-    style BackupContainer fill:#ff9
-    style DbUsuarios fill:#9f9
-    style DbInventory fill:#9f9
-    style Titulo fill:none,stroke:none,font-size:18px,font-weight:bold
+    %% ========================================================
+    %% ESTILOS VISUALES (Optimizados para GitHub)
+    %% ========================================================
+    style CapaProxy fill:#e0f2fe,stroke:#0284c7,stroke-width:3px,color:#0f172a
+    style CapaLogica fill:#ede9fe,stroke:#7c3aed,stroke-width:3px,color:#0f172a
+    style CapaDatos fill:#dcfce7,stroke:#16a34a,stroke-width:3px,color:#0f172a
+    style CapaContinuidad fill:#fef9c3,stroke:#ca8a04,stroke-width:3px,color:#0f172a
+    style Titulo fill:none,stroke:none,font-size:22px,font-weight:bold
 ```
 
 ## Funcionalidades
