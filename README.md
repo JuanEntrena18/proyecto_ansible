@@ -17,59 +17,6 @@ Interfaz visual basada en nodos para gestionar y ejecutar playbooks de Ansible e
 ## Arquitectura
 
 ```mermaid
-graph TD
-    User([Navegador]) -- "HTTPS (:443)" --> Nginx{Nginx}
-
-    subgraph "Servidor Ubuntu"
-        Nginx --> Frontend["<b>Frontend (estático)</b><br/>/var/www/.../html"]
-        Nginx -- "Proxy Pass" --> Backend["<b>Backend API (:8000)</b><br/>FastAPI + Gunicorn"]
-
-        subgraph "Core Engine"
-            Backend --> Nmap["<b>Nmap</b><br/>(Network Scan)"]
-            Backend --> Ansible["<b>Ansible</b><br/>(Automation)"]
-            Backend --> Logs[("<b>Logs</b><br/>(History)")]
-        end
-    end
-
-    subgraph "Infraestructura"
-        Ansible -- "SSH (:22)" --> Linux["Hosts Linux"]
-        Ansible -- "WinRM (:5985)" --> Windows["Hosts Windows"]
-    end
-
-    %% Estilos
-    style Nginx fill:#f9f,stroke:#333,stroke-width:2px
-    style Backend fill:#bbf,stroke:#333,stroke-width:2px
-    style User fill:#fff,stroke:#333
-```
-```mermaid
-graph TD
-    %% Título General
-    title[Arquitectura General: Visual/Ansible]
-
-    %% Definición de Nodos Principales
-    Proxy[Capa Proxy]
-    Logica[Capa Lógica]
-    Continuidad[Capa de Continuidad]
-    Datos[Persistencia de Datos]
-
-    %% Flujos de Comunicación y Dependencia
-    Proxy -->|Tráfico Externo/Seguridad| Logica
-    Logica -->|Peticiones/Operaciones/Ansible/Nmap| Datos
-    Continuidad -->|Automatización de Backups| Datos
-    Continuidad -.->|Estado/Orquestación (Opcional)| Logica
-    
-    %% Relación Lógica Directa (Ejemplo: Logs o Config)
-    Logica -.->|Logs/Config Indirecta| Datos
-
-    %% Estilos de los Nodos (Opcionales, Mermaid aplica estilos básicos por defecto)
-    style Proxy fill:#f9f,stroke:#333,stroke-width:2px;
-    style Logica fill:#ccf,stroke:#333,stroke-width:2px;
-    style Continuidad fill:#ff9,stroke:#333,stroke-width:2px;
-    style Datos fill:#9f9,stroke:#333,stroke-width:2px;
-    style title fill:none,stroke:none,font-size:18px,font-weight:bold;
-```
-
-```mermaid
 flowchart TD
     %% Título General
     Titulo["Arquitectura Completa del Sistema Visual/Ansible"]
