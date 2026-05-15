@@ -144,7 +144,7 @@ Accede a `https://<IP-del-servidor>` con usuario `admin` y contraseña `admin`.
 | `instalar_xampp` | Linux + Windows | Instala XAMPP / LAMP |
 | `instalar_libreoffice` | Linux + Windows | Instala LibreOffice |
 | `crear_usuario` | Linux + Windows | Crea usuario `alumno` |
-| `configurar_acceso` | Linux + Windows | Configura SSH y WinRM |
+| `habilitar_rdp` | Windows | Habilita escritorio remoto (RDP) |
 | `configurar_firewall` | Linux + Windows | Abre puertos en firewall |
 | `actualizar_sistema` | Linux + Windows | Actualiza paquetes del sistema |
 | `renombrar_equipos` | Linux + Windows | Renombra equipos segun IP |
