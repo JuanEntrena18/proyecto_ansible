@@ -1,10 +1,31 @@
-*.retry
-*.log
-.vault_pass
-ansible.log
-nodes/
-# No subir los backups comprimidos (pesados y sensibles)
-backups/*.tar.gz
-# No subir credenciales reales
+# ==========================================
+# REPOSITORIO VISUAL/\NSIBLE - REGLAS DE EXCLUSIÓN
+# ==========================================
+
+# 1. Variables de entorno y llaves maestras
+.env
+.credentials_key
+vault_password
+
+# 2. Persistencia de Datos (Bases de datos e Inventarios)
+data/usuarios.db
+data/inventory.json
+
+# 3. Criptografía, Certificados y Credenciales
 config/credentials.json
-config/ssl/*
+config/ssh_keys/
+config/ssl/
+
+# 4. Backups y Registros (Pesados y/o con información sensible)
+backups/
+ansible/logs/
+
+# 5. Entornos de desarrollo y cachés de Python
+backend/__pycache__/
+backend/*.pyc
+.pytest_cache/
+
+# 6. Archivos temporales o de pruebas locales
+*.backup
+* copy.*
+index_original.html

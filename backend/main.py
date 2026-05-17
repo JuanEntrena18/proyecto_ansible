@@ -291,6 +291,20 @@ def escanear_red(subnet: str = "192.168.1.0/24", current_user=Depends(get_curren
     return {"estado": "OK", "equipos": equipos}
 
 
+# descripciones para los playbooks predefinidos
+DESCRIPCIONES_PLAYBOOKS = {
+    "instalar_software.yml":  "Instala paquetes desde group_vars (git, curl, vim, htop, net-tools en Linux / VSCode, Python, 7zip, NPP en Windows)",
+    "instalar_docker.yml":    "Instala Docker CE y docker-compose en equipos Linux",
+    "instalar_libreoffice.yml": "Instala LibreOffice (chocolatey en Windows, apt en Linux)",
+    "instalar_xampp.yml":     "Instala XAMPP en Windows / LAMP (Apache+MySQL+PHP) en Linux",
+    "crear_usuario.yml":      "Crea el usuario 'alumno' con contrasena predefinida en todos los equipos",
+    "configurar_acceso.yml":  "Configura SSH en Linux y WinRM + RDP en Windows para administracion remota",
+    "configurar_firewall.yml": "Abre puertos en el firewall (SSH, WinRM, RDP, HTTP, HTTPS)",
+    "actualizar_sistema.yml": "Actualiza todos los paquetes del sistema (apt upgrade en Linux, win_updates en Windows)",
+    "renombrar_equipos.yml":  "Renombra equipos segun su IP siguiendo el patron AULA-PCXX",
+    "desinstalar_todo.yml":   "Elimina software instalado, usuarios creados y reglas de firewall",
+}
+
 # GET /playbooks - lista todos los playbooks disponibles
 @app.get("/playbooks")
 def listar_playbooks(current_user=Depends(get_current_user)):
@@ -301,11 +315,13 @@ def listar_playbooks(current_user=Depends(get_current_user)):
             for f in sorted(os.listdir(carpeta)):
                 if f.endswith(".yml"):
                     ruta = os.path.join(carpeta, f)
+                    desc = DESCRIPCIONES_PLAYBOOKS.get(f, "")
                     playbooks.append({
                         "nombre": f,
                         "tipo": tipo,
                         "editable": editable,
-                        "os_target": detectar_os_playbook(ruta)
+                        "os_target": detectar_os_playbook(ruta),
+                        "descripcion": desc
                     })
     return {"estado": "OK", "playbooks": playbooks}
 

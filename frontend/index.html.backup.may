@@ -1,73 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 
+<!-- Cabecera: cargamos las librerias externas desde CDN -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Visual/\nsible</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.theme.css">
-  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"> <!-- Fuente -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"> <!-- AdminLTE (dashboard) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css"> <!-- Drawflow (canvas) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.theme.css">
+  <!-- Estilos propios del proyecto -->
   <style>
-    /* ==========================================
-       PANTALLA DE CARGA (SPLASH SCREEN)
-       ========================================== */
-    #splash-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 99999;
-      transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
-      color: #ffffff;
-    }
-    .splash-title {
-      font-size: 3.5rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      letter-spacing: 2px;
-      color: #38bdf8;
-      text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-    }
-    .splash-version {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      margin-bottom: 3rem;
-    }
-    .splash-creators {
-      position: absolute;
-      bottom: 2rem;
-      font-size: 0.9rem;
-      color: #64748b;
-      text-align: center;
-      line-height: 1.5;
-    }
-    .creator-names {
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(56, 189, 248, 0.2);
-      border-left-color: #38bdf8;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
     /* Layout principal: canvas arriba, hosts abajo */
     .content-area {
       display: flex;
@@ -348,24 +293,11 @@
   </style>
 </head>
 
+<!-- Dark mode activo por defecto -->
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed dark-mode">
-
-  <div id="splash-screen">
-      <div class="splash-title">Visual/\nsible</div>
-      <div class="splash-version">Versión 1.0.0 (Producción)</div>
-      
-      <div class="spinner"></div>
-
-      <div class="splash-creators">
-          Proyecto Intermodular C.F.G.S<br>
-          <span class="creator-names">
-              Juan Francisco Entrena | Marina Jiménez | Diego Toribio<br>
-              Félix David Romero | Daniel Palacios
-          </span>
-      </div>
-  </div>
-
   <div class="wrapper">
+    <!-- Navbar: nombre del proyecto, historial, credenciales, menu de usuario -->
+    <!-- Los elementos con clase "admin-only" se ocultan para el operador -->
     <nav class="main-header navbar navbar-expand navbar-dark">
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a></li>
@@ -395,6 +327,7 @@
       </ul>
     </nav>
 
+    <!-- Sidebar: boton de scanner + lista de playbooks arrastrables -->
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <a href="#" class="brand-link"><span class="brand-text font-weight-light px-3">Visual <b>/\nsible</b></span></a>
       <div class="sidebar">
@@ -413,6 +346,7 @@
       </div>
     </aside>
 
+    <!-- Contenido principal: canvas Drawflow arriba, panel de hosts abajo -->
     <div class="content-wrapper">
       <div class="content-area">
         <div id="drawflow"></div>
@@ -429,6 +363,8 @@
     </footer>
   </div>
 
+  <!-- Modal login (no se puede cerrar sin autenticarse) -->
+  <!-- modal de login -->
   <div class="modal fade" id="modalLogin" tabindex="-1" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-sm modal-dialog-centered">
       <div class="modal-content bg-dark">
@@ -455,6 +391,8 @@
     </div>
   </div>
 
+  <!-- Modal historial: tabla con las ultimas ejecuciones (solo admin) -->
+  <!-- modal de historial de ejecuciones -->
   <div class="modal fade" id="modalLogs" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content bg-dark">
@@ -473,6 +411,8 @@
     </div>
   </div>
 
+  <!-- Modal resultado: terminal con la salida de Ansible en tiempo real -->
+  <!-- modal de resultado -->
   <div class="modal fade" id="mRes" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content bg-dark">
@@ -490,6 +430,8 @@
     </div>
   </div>
 
+  <!-- Modal credenciales: usuario/password para SSH (Linux) y WinRM (Windows) -->
+  <!-- modal de credenciales -->
   <div class="modal fade" id="modalCredenciales" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content bg-dark">
@@ -559,6 +501,7 @@
     </div>
   </div>
 
+  <!-- Librerias JS (al final del body para no bloquear la carga) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
@@ -663,46 +606,15 @@
       }
     });
 
-    // ==========================================
-    // INICIO DE LA APLICACIÓN Y POLLING
-    // ==========================================
+    // Al cargar la pagina: si ya hay token, arrancamos; si no, login
     $(function () {
-      function hideSplashAndInit() {
-        var splash = document.getElementById('splash-screen');
-        if(splash) {
-            splash.classList.add('fade-out');
-            setTimeout(function() {
-                splash.remove();
-                
-                // Al terminar la transición, verificamos el estado de sesión
-                if (jwtToken) {
-                  $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
-                  actualizarUI();
-                  initApp();
-                } else {
-                  showLogin();
-                }
-            }, 800);
-        }
+      if (jwtToken) {
+        $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
+        actualizarUI();
+        initApp();
+      } else {
+        showLogin();
       }
-
-      function checkServerReady() {
-        // Hace peticiones silenciosas a la raíz del backend (a través del proxy /api/)
-        fetch('/api/')
-          .then(function(response) {
-            if (response.ok) {
-              hideSplashAndInit();
-            } else {
-              setTimeout(checkServerReady, 2000); // Reintenta si hay error 5xx
-            }
-          })
-          .catch(function(error) {
-            setTimeout(checkServerReady, 2000); // Reintenta si no hay conexión
-          });
-      }
-
-      // Iniciamos el ciclo de comprobación
-      checkServerReady();
     });
 
     // initApp: toda la logica de la app, se ejecuta despues de loguearse

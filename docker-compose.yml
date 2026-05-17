@@ -1,31 +1,26 @@
-# docker-compose.yml
-# Con esto levantamos todo el proyecto: docker compose up -d
-# Son tres contenedores: el backend (API + nmap + ansible), nginx y el backup
- 
+version: '3.8'
+
 services:
- 
-  # El backend: aqui esta la API, nmap y ansible
+  # El backend: gestiona la API, escaneos Nmap y ejecución de Ansible
   backend:
     build: ./backend
     restart: unless-stopped
-    network_mode: host    # necesario para que nmap vea la red real del aula
+    network_mode: host    # Imprescindible para el descubrimiento de red local vía Nmap
     cap_add:
       - NET_RAW
     environment:
       - ANSIBLE_CONFIG=/opt/ansible-visual/ansible/ansible.cfg
       - ANSIBLE_ROLES_PATH=/opt/ansible-visual/ansible/roles
       - ANSIBLE_COLLECTIONS_PATH=/root/.ansible/collections:/usr/share/ansible/collections
-      - CREDENTIALS_KEY=${CREDENTIALS_KEY:-}
+      - CREDENTIALS_KEY=${CREDENTIALS_KEY:-} # Requerido para descifrar credenciales de hosts
     volumes:
       - ./ansible:/opt/ansible-visual/ansible
-      # credentials.json: el backend lo cifra en disco con Fernet usando CREDENTIALS_KEY
       - ./config/credentials.json:/opt/ansible-visual/credentials.json
-    # El backend no expone puertos directamente, nginx hace de proxy
-    # Pero si necesitas acceder directo en desarrollo, descomenta:
-    # ports:
-    #   - "127.0.0.1:8000:8000"
- 
-  # Nginx: sirve la pagina web y redirige las peticiones /api/ al backend
+      # Persistencia de estado: Usuarios e Inventario del aula
+      - ./data/usuarios.db:/opt/ansible-visual/usuarios.db
+      - ./data/inventory.json:/opt/ansible-visual/inventory.json
+
+  # Nginx: Servidor web y proxy inverso con soporte SSL
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -36,34 +31,24 @@ services:
       - ./frontend:/var/www/ansible-visual/html:ro
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./config/ssl:/etc/nginx/ssl:ro
- 
-  # Servicio de backup: corre en Alpine para que sea ligero
-  # Hace una copia comprimida cada dia a las 02:00 de:
-  #   - ansible/playbooks/custom  (playbooks creados por los profes)
-  #   - ansible/logs              (historial de ejecuciones)
-  #   - config/credentials.json   (credenciales de los equipos)
-  # Guarda los ultimos 30 dias y borra los mas antiguos automaticamente
-  # Para lanzar un backup manual ahora mismo:
-  #   docker compose exec backup /backup.sh
+
+  # Servicio de backup: Automatización diaria de copias de seguridad
   backup:
     image: alpine:3.19
     restart: unless-stopped
     volumes:
-      # lo que queremos respaldar (solo lectura para no romper nada)
+      # Orígenes de datos (Modo Solo Lectura para integridad)
       - ./ansible/playbooks/custom:/data/playbooks:ro
       - ./ansible/logs:/data/logs:ro
       - ./config/credentials.json:/data/credentials.json:ro
-      # donde se guardan los backups en el host
+      - ./data/usuarios.db:/data/usuarios.db:ro
+      - ./data/inventory.json:/data/inventory.json:ro
+      # Destino y script de ejecución
       - ./backups:/backups
-      # el script de backup
       - ./scripts/backup.sh:/backup.sh:ro
-    # crond de Alpine necesita que el script este en /etc/periodic/
-    # usamos 'daily' para que corra una vez al dia
-    # tambien lo ejecutamos una vez al arrancar para tener backup inmediato
     command: >
-      sh -c "cp /backup.sh /etc/periodic/daily/backup &&
+      sh -c "apk add --no-cache openssh-client &&
+             cp /backup.sh /etc/periodic/daily/backup &&
              chmod +x /etc/periodic/daily/backup &&
              /backup.sh &&
              crond -f -d 8"
-    # sin acceso a red, no lo necesita
-    network_mode: none
