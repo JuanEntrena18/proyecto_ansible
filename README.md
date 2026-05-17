@@ -112,7 +112,7 @@ git clone https://github.com/JuanEntrena18/proyecto_ansible
 cd proyecto_ansible/github
 
 # Generar clave de cifrado para credenciales
-export CREDENTIALS_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+export CREDENTIALS_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 
 # Construir y arrancar
 sudo docker compose up -d --build
