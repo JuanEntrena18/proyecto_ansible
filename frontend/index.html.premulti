@@ -5,81 +5,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Visual/\nsible</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.theme.css">
-  
   <style>
-    /* ==========================================
-       PANTALLA DE CARGA (SPLASH SCREEN)
-       ========================================== */
-    #splash-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 99999;
-      transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
-      color: #ffffff;
-    }
-    .splash-title {
-      font-size: 3.5rem;
-      font-weight: bold;
-      margin-bottom: 0.5rem;
-      letter-spacing: 2px;
-      color: #38bdf8;
-      text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-    }
-    .splash-version {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      margin-bottom: 3rem;
-    }
-    .splash-creators {
-      position: absolute;
-      bottom: 2rem;
-      font-size: 0.9rem;
-      color: #64748b;
-      text-align: center;
-      line-height: 1.5;
-    }
-    .creator-names {
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(56, 189, 248, 0.2);
-      border-left-color: #38bdf8;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    /* Layout principal: canvas arriba, hosts abajo */
     .content-area {
       display: flex;
       flex-direction: column;
       height: calc(100vh - 114px);
     }
 
-    /* Canvas donde va el nodo del scanner */
     #drawflow {
       width: 100%;
       height: 280px;
@@ -92,7 +30,6 @@
       outline: none;
     }
 
-    /* Nodos del canvas */
     .drawflow .drawflow-node {
       background: #1e1e1e;
       border: 1px solid #444;
@@ -117,12 +54,10 @@
       padding: 10px;
     }
 
-    /* Cabecera morada del scanner */
     .drawflow .drawflow-node.node-scanner .title-box {
       background: #6f42c1;
     }
 
-    /* Campo de texto dentro del nodo */
     .node-input {
       background: #333;
       border: 1px solid #555;
@@ -133,7 +68,6 @@
       margin-bottom: 5px;
     }
 
-    /* Terminal donde se ve la salida de Ansible */
     .output-terminal {
       background: #0d1117;
       color: #c9d1d9;
@@ -146,7 +80,6 @@
       white-space: pre-wrap;
     }
 
-    /* Panel de hosts descubiertos */
     #hosts-panel {
       flex: 1;
       background: #1a1a2e;
@@ -168,14 +101,12 @@
       color: #6f42c1;
     }
 
-    /* Grid responsive: las tarjetas se adaptan al ancho */
     #hosts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 12px;
     }
 
-    /* Tarjeta de cada host */
     .host-card {
       background: #1e1e1e;
       border: 1px solid #444;
@@ -185,7 +116,6 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    /* Cabecera: verde=Linux, azul=Windows */
     .host-card .hc-title {
       padding: 8px 12px;
       border-radius: 8px 8px 0 0;
@@ -196,8 +126,14 @@
       color: white;
       font-size: 13px;
     }
-    .host-card.os-linux .hc-title    { background: #28a745; }
-    .host-card.os-windows .hc-title  { background: #0078d4; }
+
+    .host-card.os-linux .hc-title {
+      background: #28a745;
+    }
+
+    .host-card.os-windows .hc-title {
+      background: #0078d4;
+    }
 
     .host-card .hc-body {
       padding: 10px;
@@ -207,19 +143,21 @@
       color: #fff;
     }
 
-    /* Estados: drag-over, running (pulso), ok (verde), fail (rojo) */
     .host-card.drag-over {
       border: 2px solid #ffc107;
       box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
     }
+
     .host-card.node-running {
       border: 2px solid #ffc107;
       animation: pulso 1s infinite;
     }
+
     .host-card.node-ok {
       border: 2px solid #28a745;
       box-shadow: 0 0 12px rgba(40, 167, 69, 0.5);
     }
+
     .host-card.node-fail {
       border: 2px solid #dc3545;
       box-shadow: 0 0 12px rgba(220, 53, 69, 0.5);
@@ -232,7 +170,6 @@
       font-size: 14px;
     }
 
-    /* Playbooks arrastrables del sidebar */
     .pb-item {
       padding: 10px 12px;
       cursor: grab;
@@ -271,11 +208,21 @@
       flex-shrink: 0;
     }
 
-    /* Color del icono segun tipo de playbook */
-    .pb-item .pb-icon.ic-install  { background: #28a745; }
-    .pb-item .pb-icon.ic-config   { background: #fd7e14; }
-    .pb-item .pb-icon.ic-security { background: #dc3545; }
-    .pb-item .pb-icon.ic-system   { background: #6f42c1; }
+    .pb-item .pb-icon.ic-install {
+      background: #28a745;
+    }
+
+    .pb-item .pb-icon.ic-config {
+      background: #fd7e14;
+    }
+
+    .pb-item .pb-icon.ic-security {
+      background: #dc3545;
+    }
+
+    .pb-item .pb-icon.ic-system {
+      background: #6f42c1;
+    }
 
     .pb-item .pb-label {
       flex: 1;
@@ -288,7 +235,6 @@
       display: block;
     }
 
-    /* Sidebar colapsado: solo se ven los iconos */
     body.sidebar-collapse .cred-section,
     body.sidebar-collapse .nav-header {
       display: none !important;
@@ -309,7 +255,6 @@
       margin: 0;
     }
 
-    /* Parpadeo amarillo durante la ejecucion */
     @keyframes pulso {
       0%, 100% { opacity: 1 }
       50% { opacity: 0.6 }
@@ -329,46 +274,10 @@
       margin-top: 4px;
       font-size: 11px;
     }
-
-    /* Tarjeta seleccionada: borde azul con check */
-    .host-card.selected {
-      border: 2px solid #007bff !important;
-      box-shadow: 0 0 8px rgba(0,123,255,.5);
-    }
-    .host-card.selected::after {
-      content: '\f00c';
-      font-family: 'Font Awesome 5 Free';
-      font-weight: 900;
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      color: #007bff;
-      font-size: 12px;
-    }
-    .host-card { position: relative; }
-    .sel-btns { display: inline-block; float: right; }
-    .sel-btns button { background: none; border: none; color: #aaa; font-size: 12px; cursor: pointer; padding: 0 4px; }
-    .sel-btns button:hover { color: #fff; }
   </style>
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed dark-mode">
-
-  <div id="splash-screen">
-      <div class="splash-title">Visual/\nsible</div>
-      <div class="splash-version">Versión 1.0.0 (Producción)</div>
-      
-      <div class="spinner"></div>
-
-      <div class="splash-creators">
-          Proyecto Intermodular C.F.G.S<br>
-          <span class="creator-names">
-              Juan Francisco Entrena | Marina Jiménez | Diego Toribio<br>
-              Félix David Romero | Daniel Palacios
-          </span>
-      </div>
-  </div>
-
   <div class="wrapper">
     <nav class="main-header navbar navbar-expand navbar-dark">
       <ul class="navbar-nav">
@@ -421,7 +330,7 @@
       <div class="content-area">
         <div id="drawflow"></div>
         <div id="hosts-panel">
-          <div class="panel-header"><i class="fas fa-network-wired"></i> Hosts descubiertos<span class="sel-btns"><button onclick="seleccionarTodos()" title="Seleccionar todos"><i class="fas fa-check-double"></i></button><button onclick="seleccionarNinguno()" title="Ninguno"><i class="fas fa-times"></i></button></span></div>
+          <div class="panel-header"><i class="fas fa-network-wired"></i> Hosts descubiertos</div>
           <div id="hosts-grid"></div>
           <div id="hosts-empty">Escanea la red para descubrir equipos</div>
         </div>
@@ -429,10 +338,12 @@
     </div>
 
     <footer class="main-footer text-center text-sm">
-      <strong>Proyecto Visual/\nsible</strong> - Gestión automatizada de aulas
+      <strong>Proyecto Visual/\nsible</strong> - Creadores: Marina Jimenez Egea, Felix David Romero Lopez, Daniel
+      Palacios Melguizo, Diego Toribio Perea, Juan Fco. Entrena Garrido
     </footer>
   </div>
 
+  <!-- modal de login -->
   <div class="modal fade" id="modalLogin" tabindex="-1" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-sm modal-dialog-centered">
       <div class="modal-content bg-dark">
@@ -440,6 +351,9 @@
           <h5 class="modal-title"><i class="fas fa-lock text-purple"></i> Iniciar sesion</h5>
         </div>
         <div class="modal-body">
+          <div class="alert alert-info py-2 px-3" style="font-size:12px; background:#1e1e2e; border-color:#444;">
+            <i class="fas fa-info-circle"></i> Usuarios: <strong>admin</strong> / <strong>operador</strong> (contraseña = mismo nombre)
+          </div>
           <div class="form-group">
             <label class="text-muted small">Usuario</label>
             <input type="text" id="loginUser" class="form-control bg-dark border-secondary text-white" placeholder="Usuario" autocomplete="username">
@@ -459,6 +373,7 @@
     </div>
   </div>
 
+  <!-- modal de historial de ejecuciones -->
   <div class="modal fade" id="modalLogs" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content bg-dark">
@@ -477,6 +392,7 @@
     </div>
   </div>
 
+  <!-- modal de resultado -->
   <div class="modal fade" id="mRes" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content bg-dark">
@@ -494,6 +410,7 @@
     </div>
   </div>
 
+  <!-- modal de credenciales -->
   <div class="modal fade" id="modalCredenciales" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content bg-dark">
@@ -569,13 +486,14 @@
   <script src="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script>
-    // --- Estado de autenticacion ---
-    // Usamos sessionStorage (se borra al cerrar pestaña) para no dejar sesiones abiertas
+    // -------------------------------------------------------------------------
+    // AUTENTICACION: estado global y helpers
+    // -------------------------------------------------------------------------
     var jwtToken = sessionStorage.getItem('jwt');
     var userRole = sessionStorage.getItem('rol');
     var userName = sessionStorage.getItem('username');
 
-    // Wrapper de fetch que mete el token JWT en todas las peticiones
+    // wrapper para fetch con token JWT
     function apiFetch(url, options) {
       options = options || {};
       options.headers = options.headers || {};
@@ -583,7 +501,7 @@
       return fetch(url, options);
     }
 
-    // Mostrar el modal de login
+    // mostrar modal de login bloqueante
     function showLogin() {
       $('#loginError').hide();
       $('#loginPass').val('');
@@ -591,7 +509,7 @@
       $('#modalLogin').modal('show');
     }
 
-    // Login: envia usuario y password al backend, guarda el token si va bien
+    // login
     function login() {
       var username = $('#loginUser').val().trim();
       var password = $('#loginPass').val();
@@ -608,14 +526,12 @@
         contentType: 'application/json',
         data: JSON.stringify({ username: username, password: password }),
         success: function (data) {
-          // Guardamos token y datos en sessionStorage
           jwtToken = data.access_token;
           userRole = data.rol;
           userName = data.username;
           sessionStorage.setItem('jwt', jwtToken);
           sessionStorage.setItem('rol', userRole);
           sessionStorage.setItem('username', userName);
-          // Que todas las peticiones AJAX lleven el token
           $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
           $('#modalLogin').modal('hide');
           actualizarUI();
@@ -630,7 +546,7 @@
       });
     }
 
-    // Cerrar sesion
+    // cerrar sesion
     function logout() {
       sessionStorage.clear();
       jwtToken = null;
@@ -639,7 +555,7 @@
       location.reload();
     }
 
-    // Mostrar/ocultar elementos segun el rol del usuario
+    // actualizar elementos de la UI segun autenticacion
     function actualizarUI() {
       if (userName) {
         $('#userDisplay').text(userName);
@@ -652,7 +568,7 @@
       }
     }
 
-    // Si una peticion devuelve 401 (token caducado), volvemos al login
+    // interceptor 401 global
     $(document).ajaxError(function (event, jqxhr) {
       if (jqxhr.status === 401 && jwtToken) {
         sessionStorage.clear();
@@ -667,52 +583,24 @@
       }
     });
 
-    // ==========================================
-    // INICIO DE LA APLICACIÓN Y POLLING
-    // Al cargar la pagina: si ya hay token, arrancamos; si no, login
-    // ==========================================
+    // -------------------------------------------------------------------------
+    // INICIO: comprobar autenticacion al cargar la pagina
+    // -------------------------------------------------------------------------
     $(function () {
-      function hideSplashAndInit() {
-        var splash = document.getElementById('splash-screen');
-        if(splash) {
-            splash.classList.add('fade-out');
-            setTimeout(function() {
-                splash.remove();
-                
-                // Al terminar la transición, verificamos el estado de sesión
-                if (jwtToken) {
-                  $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
-                  actualizarUI();
-                  initApp();
-                } else {
-                  showLogin();
-                }
-            }, 800);
-        }
+      if (jwtToken) {
+        $.ajaxSetup({ headers: { 'Authorization': 'Bearer ' + jwtToken } });
+        actualizarUI();
+        initApp();
+      } else {
+        showLogin();
       }
-
-      function checkServerReady() {
-        // Hace peticiones silenciosas a la raíz del backend (a través del proxy /api/)
-        fetch('/api/')
-          .then(function(response) {
-            if (response.ok) {
-              hideSplashAndInit();
-            } else {
-              setTimeout(checkServerReady, 2000); // Reintenta si hay error 5xx
-            }
-          })
-          .catch(function(error) {
-            setTimeout(checkServerReady, 2000); // Reintenta si no hay conexión
-          });
-      }
-
-      // Iniciamos el ciclo de comprobación
-      checkServerReady();
     });
 
-    // initApp: toda la logica de la app, se ejecuta despues de loguearse
+    // -------------------------------------------------------------------------
+    // INIT: se ejectua despues de autenticarse
+    // -------------------------------------------------------------------------
     function initApp() {
-      // Drawflow: canvas interactivo para el nodo del scanner
+      // DRAWFLOW
       var container = document.getElementById("drawflow");
       const editor = new Drawflow(container);
       editor.reroute = false;
@@ -721,7 +609,7 @@
       var hostsData = [];
       var passGuardada = { linux: false, win: false };
 
-      // Alternar visibilidad del campo de password
+      // --- togglePass ---
       window.togglePass = function (btn) {
         var $input = $(btn).closest('.input-group').find('input');
         var type = $input.attr('type') === 'password' ? 'text' : 'password';
@@ -729,7 +617,7 @@
         $(btn).find('i').toggleClass('fa-eye fa-eye-slash');
       };
 
-      // Notificacion flotante (toast) en la esquina inferior derecha
+      // --- mostrarToast ---
       window.mostrarToast = function (msg, tipo) {
         var color = tipo === 'success' ? '#28a745' : (tipo === 'warning' ? '#ffc107' : '#dc3545');
         var $t = $('<div style="position:fixed;bottom:24px;right:24px;z-index:9999;background:'
@@ -739,7 +627,7 @@
         setTimeout(function () { $t.fadeOut(400, function () { $t.remove(); }); }, 3500);
       };
 
-      // Indicador de si hay password guardada (check verde o warning amarillo)
+      // --- actualizarIndicador ---
       window.actualizarIndicador = function (tipo, tienePass) {
         passGuardada[tipo] = tienePass;
         var $el = $('#' + tipo + 'PassStatus');
@@ -752,7 +640,7 @@
         }
       };
 
-      // Cargar credenciales guardadas
+      // --- Cargar credenciales ---
       $('#linuxUser').val(sessionStorage.getItem('linuxUser') || '');
       $('#winUser').val(sessionStorage.getItem('winUser') || '');
 
@@ -766,7 +654,6 @@
             $('#winUser').val(r.win_user);
             sessionStorage.setItem('winUser', r.win_user);
           }
-          // Actualizar indicadores
           actualizarIndicador('linux', !!r.linux_tiene_pass);
           actualizarIndicador('win', !!r.win_tiene_pass);
         }).fail(function () {
@@ -778,11 +665,10 @@
         actualizarIndicador('win', false);
       }
 
-      // Recordar usuarios entre aperturas del modal
       $('#linuxUser').on('input change', function () { sessionStorage.setItem('linuxUser', this.value); });
       $('#winUser').on('input change', function () { sessionStorage.setItem('winUser', this.value); });
 
-      // Guardar credenciales en el servidor (solo envia campos con valor nuevo)
+      // --- guardarCredenciales ---
       window.guardarCredenciales = function () {
         var payload = {};
         var lu = $('#linuxUser').val().trim();
@@ -829,7 +715,7 @@
         });
       };
 
-      // Cargar playbooks del sidebar
+      // --- Cargar playbooks ---
       $.get('/api/playbooks', function (r) {
         var html = '';
         (r.playbooks || []).forEach(function (p) {
@@ -855,20 +741,18 @@
         $('#pbList').html(html || '<small class="text-muted px-3">Ninguno</small>');
       });
 
-      // Al arrastrar un playbook guardamos su ruta y nombre
       window.dragPb = function (ev, src, nombre) {
         ev.dataTransfer.setData('pb-src', src);
         ev.dataTransfer.setData('pb-nombre', nombre);
       };
 
-      // Ejecutar un playbook en un solo host
+      // --- ejecutarEnHost ---
       window.ejecutarEnHost = function (cardEl, src, nombre) {
         var ip = cardEl.dataset.ip;
         var os = cardEl.dataset.os;
         var label = nombre.replace('.yml', '');
         if (!confirm('Ejecutar "' + label + '" en ' + ip + ' (' + os + ')?')) return;
 
-        // Credenciales segun el SO
         var esWindows = os.toLowerCase().indexOf('windows') >= 0;
         var creds;
         if (esWindows) {
@@ -883,7 +767,6 @@
           };
         }
 
-        // Comprobar que hay password
         var tipoPass = esWindows ? 'win' : 'linux';
         if (!creds.password && !passGuardada[tipoPass]) {
           mostrarToast(
@@ -895,13 +778,11 @@
           return;
         }
 
-        // Marcar tarjeta como "ejecutando"
         $(cardEl).removeClass('node-ok node-fail').addClass('node-running');
         $('#rOut').text('');
         $('#rBadge').text('EJECUTANDO').attr('class', 'badge ml-2 badge-warning');
         $('#mRes').modal('show');
 
-        // Peticion al backend con streaming (fetch, no jQuery)
         var parts = src.split('/');
         apiFetch('/api/execute', {
           method: 'POST',
@@ -914,7 +795,6 @@
           })
         }).then(function (resp) {
           if (resp.status === 401) throw new Error('No autorizado');
-          // Leemos la respuesta linea a linea con ReadableStream
           var reader = resp.body.getReader();
           var decoder = new TextDecoder();
           var $out = $('#rOut');
@@ -941,7 +821,7 @@
         });
       };
 
-      // Crear las tarjetas de hosts descubiertos
+      // --- renderHosts ---
       window.renderHosts = function (equipos) {
         hostsData = equipos;
         var $grid = $('#hosts-grid');
@@ -958,14 +838,6 @@
             + '<div class="hc-title"><i class="' + eq.icon + '"></i> ' + eq.os + '</div>'
             + '<div class="hc-body"><i class="fas fa-network-wired mr-1 text-success"></i>' + eq.ip + '</div>'
             + '</div>');
-
-          // Clic para seleccionar/deseleccionar
-          card.on('click', function (ev) {
-            if (ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT') return;
-            $(this).toggleClass('selected');
-          });
-
-          // Drag & drop de playbooks
           card.on('dragover', function (ev) { ev.preventDefault(); $(this).addClass('drag-over'); });
           card.on('dragleave', function () { $(this).removeClass('drag-over'); });
           card.on('drop', function (ev) {
@@ -974,100 +846,14 @@
             var src = ev.originalEvent.dataTransfer.getData('pb-src');
             var nombre = ev.originalEvent.dataTransfer.getData('pb-nombre');
             if (!src) return;
-            // Si hay hosts seleccionados, ejecutar en todos; si no, solo en este
-            var seleccionados = $('#hosts-grid .host-card.selected');
-            if (seleccionados.length > 0 && $(this).hasClass('selected')) {
-              ejecutarEnMultiples(seleccionados, src, nombre);
-            } else {
-              ejecutarEnHost(this, src, nombre);
-            }
+            ejecutarEnHost(this, src, nombre);
           });
-
           $grid.append(card);
-          // Animacion de entrada escalonada
           anime({ targets: card[0], scale: [0, 1], opacity: [0, 1], duration: 600, delay: i * 80, easing: 'easeOutElastic(1,.8)' });
         });
       };
 
-      // Seleccionar todos / ninguno
-      window.seleccionarTodos = function () { $('#hosts-grid .host-card').addClass('selected'); };
-      window.seleccionarNinguno = function () { $('#hosts-grid .host-card').removeClass('selected'); };
-
-      // Ejecutar en multiples hosts (modo mixto si hay Win+Lin mezclados)
-      window.ejecutarEnMultiples = function (cards, src, nombre) {
-        var label = nombre.replace('.yml', '');
-        var hosts = [];
-        cards.each(function () {
-          hosts.push({ ip: this.dataset.ip, os: this.dataset.os });
-        });
-        var ips = hosts.map(function (h) { return h.ip; }).join(', ');
-        if (!confirm('Ejecutar "' + label + '" en ' + hosts.length + ' equipos?\n' + ips)) return;
-
-        var hayWin = hosts.some(function (h) { return h.os.toLowerCase().indexOf('windows') >= 0; });
-        var hayLin = hosts.some(function (h) { return h.os.toLowerCase().indexOf('windows') < 0; });
-        var creds;
-        if (hayWin && !hayLin) {
-          creds = { usuario: $('#winUser').val() || 'Administrator', password: $('#winPass').val() || '' };
-        } else if (hayLin && !hayWin) {
-          creds = { usuario: $('#linuxUser').val() || 'ubuntu', password: $('#linuxPass').val() || '' };
-        } else {
-          creds = { usuario: '', password: '' };
-        }
-
-        // Si hay mezcla Win+Lin sin passwords guardadas, avisamos
-        if (!creds.password && !creds.usuario) {
-          if (!passGuardada.win || !passGuardada.linux) {
-            mostrarToast('<i class="fas fa-exclamation-triangle"></i> Hay equipos mixtos (Windows+Linux). Guarda ambas credenciales primero.', 'danger');
-            return;
-          }
-          // Si ambas passwords estan guardadas, usamos modo mixto
-          creds = { usuario: 'mixed', password: '' };
-        }
-
-        cards.each(function () { $(this).removeClass('node-ok node-fail').addClass('node-running'); });
-        $('#rOut').text('');
-        $('#rBadge').text('EJECUTANDO').attr('class', 'badge ml-2 badge-warning');
-        $('#mRes').modal('show');
-
-        var parts = src.split('/');
-        apiFetch('/api/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            playbook: parts[1],
-            tipo: parts[0],
-            hosts: hosts,
-            credenciales: creds
-          })
-        }).then(function (resp) {
-          if (resp.status === 401) throw new Error('No autorizado');
-          var reader = resp.body.getReader();
-          var decoder = new TextDecoder();
-          var $out = $('#rOut');
-          function leer() {
-            reader.read().then(function (result) {
-              if (result.done) {
-                var texto = $out.text();
-                var ok = texto.indexOf('RESULTADO: OK') >= 0;
-                $('#rBadge').text(ok ? 'OK' : 'ERROR')
-                  .attr('class', 'badge ml-2 badge-' + (ok ? 'success' : 'danger'));
-                cards.each(function () { $(this).removeClass('node-running').addClass(ok ? 'node-ok' : 'node-fail'); });
-                return;
-              }
-              $out.append(decoder.decode(result.value, { stream: true }));
-              $out[0].scrollTop = $out[0].scrollHeight;
-              leer();
-            });
-          }
-          leer();
-        }).catch(function () {
-          $('#rOut').text('No se ha podido conectar con el backend.');
-          $('#rBadge').text('ERROR').attr('class', 'badge ml-2 badge-danger');
-          cards.each(function () { $(this).removeClass('node-running').addClass('node-fail'); });
-        });
-      };
-
-      // Nodo del scanner en el canvas (solo se crea uno)
+      // --- Scanner ---
       var scannerCreado = false;
       window.addScanner = function () {
         if (scannerCreado) return;
@@ -1084,7 +870,6 @@
         anime({ targets: '#node-' + nid, scale: [0, 1], opacity: [0, 1], duration: 800, easing: 'easeOutElastic(1,.8)' });
       };
 
-      // Escanear la red con nmap
       window.doScan = function (btn) {
         var $b = $(btn), $box = $b.closest('.box'), $st = $box.find('.st');
         var subnet = $box.find('.subnet-input').val();
@@ -1107,10 +892,10 @@
         });
       };
 
-      // Crear el scanner al arrancar
+      // inicializar scanner
       addScanner();
 
-      // Cargar historial de ejecuciones (solo admin)
+      // --- cargarLogs ---
       window.cargarLogs = function () {
         $('#logsBody').html('<tr><td colspan="5" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>');
         $('#modalLogs').modal('show');
